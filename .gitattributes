@@ -1,0 +1,40 @@
+# Normalize line endings to LF on checkout for cross-platform consistency.
+* text=auto eol=lf
+
+# Source code
+*.py text
+*.js text
+*.ts text
+*.tsx text
+*.jsx text
+*.go text
+*.rs text
+*.java text
+*.sh text eol=lf
+
+# Documentation
+*.md text
+*.rst text
+*.txt text
+
+# Data and lockfiles
+*.lock binary
+*.lockb binary
+package-lock.json text -diff
+pnpm-lock.yaml text -diff
+yarn.lock text -diff
+
+# Images and binaries
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Archives
+*.zip binary
+*.tar.gz binary
+*.tgz binary

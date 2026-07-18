@@ -1,0 +1,36 @@
+# Recon-OS CODEOWNERS
+#
+# Defines the default reviewers for pull requests that touch different areas of
+# the repository. Prepared for a multi-maintainer project: assign real
+# teams or handles as modules land.
+#
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo.
+*       @hardikkaurani
+
+# Repository governance and community health.
+/.github/             @hardikkaurani
+/CODEOWNERS           @hardikkaurani
+/LICENSE              @hardikkaurani
+/SECURITY.md          @hardikkaurani
+/CODE_OF_CONDUCT.md   @hardikkaurani
+
+# Documentation tree.
+/docs/                @hardikkaurani
+
+# ---------------------------------------------------------------------------
+# Module owners for future packages. Uncomment and assign as the corresponding
+# package is introduced (see ROADMAP.md). Teams referenced here must be created
+# as GitHub teams before they take effect.
+# ---------------------------------------------------------------------------
+# /packages/dataset-engine/        @recon-os/dataset-engine-maintainers
+# /packages/chunking-engine/       @recon-os/chunking-engine-maintainers
+# /packages/embedding-engine/      @recon-os/embedding-engine-maintainers
+# /packages/vector-store/          @recon-os/vector-store-maintainers
+# /packages/retriever/             @recon-os/retriever-maintainers
+# /packages/evaluation-engine/     @recon-os/evaluation-engine-maintainers
+# /packages/experiment-tracking/   @recon-os/experiment-tracking-maintainers
+# /apps/dashboard/                 @recon-os/dashboard-maintainers
+# /apps/cli/                       @recon-os/cli-maintainers
+# /apps/sdk/                       @recon-os/sdk-maintainers
