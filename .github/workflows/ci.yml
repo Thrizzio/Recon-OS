@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: List tracked Markdown documents
+        run: |
+          echo "Markdown documents under version control:"
+          git ls-files | grep -E '\.md$' | sort
+
+      - name: Guard against placeholder content
+        run: |
+          if grep -rniE 'lorem ipsum|<<<<<<<|>>>>>>>' --include='*.md' .; then
+            echo "::error::Placeholder or conflict markers detected in Markdown."
+            exit 1
+          fi
+          echo "No placeholder or conflict markers found."
+
+      - name: Done
+        run: echo "Foundation validation passed. CI will be expanded in later pull requests."
