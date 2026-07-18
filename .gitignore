@@ -1,0 +1,146 @@
+# ---------------------------------------------------------------------------
+# Recon-OS .gitignore
+# Designed for a future polyglot monorepo (Python + Node.js + Go + others).
+# Each section is scoped so contributors on any platform are covered.
+# ---------------------------------------------------------------------------
+
+# ===================== Version control / tooling metadata =====================
+.trunk/logs/
+.trunk/out/
+.trunk/actions/
+.trunk/notifications/
+.trunk/tools/
+
+# ===================== Python =====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+ENV/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.cache/
+
+# ===================== Node.js =====================
+node_modules/
+.pnp/
+.pnp.js
+.yarn/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+.next/
+.nuxt/
+.out/
+dist/
+build/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+.docusaurus/
+
+# ===================== Go =====================
+*.test
+*.out
+go.work.sum
+/bin/
+
+# ===================== Environment files =====================
+.env
+.env.*
+*.local
+
+# ===================== Secrets / credentials =====================
+*.pem
+*.key
+secrets.json
+credentials.json
+service-account.json
+
+# ===================== Logs =====================
+*.log
+logs/
+log/
+
+# ===================== Temporary files =====================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.tmp/
+.cache/
+.sass-cache/
+
+# ===================== Coverage / test artifacts =====================
+coverage/
+.nyc_output/
+htmlcov/
+junit.xml
+test-results/
+
+# ===================== Build outputs =====================
+target/
+bin/
+obj/
+dist/
+build/
+
+# ===================== OS / editor =====================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.idea/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.atom/
+*.sublime-project
+*.sublime-workspace
