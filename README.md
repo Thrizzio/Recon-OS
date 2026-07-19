@@ -58,10 +58,10 @@ consolidates them into a single, opinionated-but-extensible engineering platform
 
 ## Status
 
-Recon-OS is in its engineering-foundation phase. The repository currently establishes
-governance, documentation structure, and the contribution workflow. Application code and
-modules are introduced incrementally through later pull requests (see
-[ROADMAP.md](ROADMAP.md)).
+Recon-OS is in its engineering-foundation phase. The repository now establishes governance,
+documentation, the contribution workflow, and the monorepo workspace that future modules
+build on. Application code and engine logic are introduced incrementally through later
+pull requests (see [ROADMAP.md](ROADMAP.md)).
 
 ## Implemented features
 
@@ -73,11 +73,21 @@ The following are present in the repository today:
   request template.
 - Architecture and roadmap documentation: [ARCHITECTURE.md](ARCHITECTURE.md),
   [ROADMAP.md](ROADMAP.md).
-- Continuous integration skeleton: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+- Continuous integration: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) validates
+  docs and the workspace (typecheck, lint, test, boundaries).
 - Cross-platform repository hygiene: [`.gitignore`](.gitignore),
   [`.editorconfig`](.editorconfig), [`.gitattributes`](.gitattributes).
+- Monorepo workspace (pnpm workspaces) with `apps/` and `packages/` boundaries and root
+  scripts for `build`, `typecheck`, `lint`, `format`, `test`, and `check:boundaries`.
+- Shared configuration in [`packages/config`](packages/config): TypeScript, ESLint, and
+  Prettier, reused by every package.
+- Package skeletons: [`@recon-os/core`](packages/core) (domain types),
+  [`@recon-os/config`](packages/config), [`@recon-os/sdk`](packages/sdk),
+  [`@recon-os/cli`](packages/cli).
+- Application skeletons: [`@recon-os/api`](apps/api), [`@recon-os/web`](apps/web).
 
-No application code, pipelines, or integrations are implemented yet by design.
+No engine logic, APIs, UIs, or integrations are implemented yet by design; the workspace
+defines where that code will live.
 
 ## Planned features
 
@@ -100,12 +110,24 @@ Recon-OS/
 │   ├── ISSUE_TEMPLATE/      # Bug, feature, documentation, question templates
 │   ├── workflows/           # CI definitions
 │   └── PULL_REQUEST_TEMPLATE.md
+├── .github/                 # GitHub templates and CI
+│   ├── ISSUE_TEMPLATE/      # Bug, feature, documentation, question templates
+│   ├── workflows/           # CI definitions
+│   └── PULL_REQUEST_TEMPLATE.md
+├── apps/                    # Deployable applications
+│   ├── api/                 # Reserved backend service
+│   └── web/                 # Reserved dashboard frontend
+├── packages/                # Reusable libraries
+│   ├── core/                # Shared domain types and interfaces
+│   ├── config/              # Shared TS / ESLint / Prettier config
+│   ├── sdk/                 # Reserved SDK surface
+│   └── cli/                 # Reserved CLI
 ├── docs/                    # Documentation tree
 │   ├── architecture/        # Architecture deep-dives (future modules)
 │   ├── contributing/        # Contributor-facing docs
 │   └── getting-started/     # Onboarding
-├── apps/                    # Deployable applications (dashboard, CLI, SDK)
-├── packages/                # Reusable libraries (engines and interfaces)
+├── tests/                   # Cross-package validation tests
+├── scripts/                 # Workspace tooling scripts
 ├── ARCHITECTURE.md          # Architecture overview
 ├── ROADMAP.md               # Phased plan
 ├── CONTRIBUTING.md          # Contributor guide
@@ -114,10 +136,45 @@ Recon-OS/
 ├── CODE_OF_CONDUCT.md       # Contributor Covenant 2.1
 ├── CODEOWNERS               # Review ownership
 ├── LICENSE                  # Apache License 2.0
+├── package.json             # Root workspace manifest
+├── pnpm-workspace.yaml      # Workspace package globs
+├── eslint.config.js         # Root ESLint config (re-exports shared)
 ├── .editorconfig            # Editor formatting
 ├── .gitattributes           # Line-ending normalization
 └── .gitignore               # Polyglot monorepo ignores
 ```
+
+## Monorepo layout
+
+Recon-OS is a pnpm workspace. The root [`package.json`](package.json) and
+[`pnpm-workspace.yaml`](pnpm-workspace.yaml) declare the workspace; every package under
+`apps/` and `packages/` is a member.
+
+| Area | Package | Role |
+| ---- | ------- | ---- |
+| `packages/core` | `@recon-os/core` | Shared domain types and interfaces. |
+| `packages/config` | `@recon-os/config` | Shared TypeScript, ESLint, Prettier config. |
+| `packages/sdk` | `@recon-os/sdk` | Reserved SDK client contract. |
+| `packages/cli` | `@recon-os/cli` | Reserved CLI surface. |
+| `apps/api` | `@recon-os/api` | Reserved backend service. |
+| `apps/web` | `@recon-os/web` | Reserved dashboard frontend. |
+
+Root scripts operate across the workspace:
+
+| Script | What it does |
+| ------ | ------------ |
+| `pnpm install` | Install all workspace dependencies. |
+| `pnpm build` | Build library packages (`packages/*`). |
+| `pnpm typecheck` | Type-check every package. |
+| `pnpm lint` | Lint every package with the shared ESLint config. |
+| `pnpm format` | Format every package with Prettier. |
+| `pnpm test` | Run package tests and the workspace validation suite. |
+| `pnpm check:boundaries` | Enforce package dependency direction (no upward deps). |
+| `pnpm validate` | Run typecheck, lint, and boundary checks together. |
+
+The dependency direction is one-way: applications depend on packages, and `core` is the
+base every other package builds on. `config` is tooling only and is never imported by
+application code. This keeps the graph acyclic by construction.
 
 ## Architecture summary
 

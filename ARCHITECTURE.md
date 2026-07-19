@@ -48,6 +48,32 @@ intended shape of the system.
 | CLI | Command-line entry point for local workflows. |
 | SDK | Programmatic API for embedding Recon-OS in other systems. |
 
+## Workspace and package topology
+
+The repository is a pnpm workspace. Source is organized so future engines have an explicit
+home and the dependency graph stays acyclic. See the
+[monorepo layout in the README](../README.md#monorepo-layout) for the command reference.
+
+| Package | Kind | Responsibility |
+| ------- | ---- | -------------- |
+| `@recon-os/core` | library | Shared domain types and interfaces used across the platform. |
+| `@recon-os/config` | tooling | Shared TypeScript, ESLint, and Prettier configuration. |
+| `@recon-os/sdk` | library | Reserved client contract for embedding Recon-OS. |
+| `@recon-os/cli` | library | Reserved command-line surface. |
+| `@recon-os/api` | application | Reserved backend service. |
+| `@recon-os/web` | application | Reserved dashboard frontend. |
+
+Dependency rules:
+
+- Applications (`apps/*`) may depend on libraries (`packages/*`); libraries must not depend
+  on applications. This prevents cycles and keeps libraries reusable.
+- `core` is the base vocabulary; engine packages introduced later (dataset, chunking,
+  embedding, and others) build on it.
+- `config` is tooling only. It is consumed by the build/lint/format toolchain, never by
+  application or library source.
+
+These boundaries are enforced mechanically by `scripts/check-boundaries.mjs`, run in CI.
+
 ## Expected data flow
 
 ```mermaid

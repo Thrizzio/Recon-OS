@@ -1,14 +1,24 @@
 # Packages
 
-This directory hosts reusable Recon-OS libraries (engines and interfaces). It is
-intentionally empty in the engineering-foundation phase.
+This directory hosts the reusable Recon-OS libraries and shared tooling. Each package is
+its own workspace member under `packages/*`.
 
-- **Purpose:** Contain the modular components that make up the RAG lifecycle.
-- **Audience:** Maintainers implementing a new engine or interface.
-- **When to update:** When a new package is introduced.
-- **Expansion:** See phases 2-8 and 11 in `ROADMAP.md`.
+- **Purpose:** Contain the modular components and shared config that make up the platform.
+- **Audience:** Maintainers implementing a library, engine, or interface.
+- **When to update:** When a package is added or its responsibility changes.
+- **Expansion:** Engine packages (dataset, chunking, embedding, and others) are added in
+  later phases; see `ROADMAP.md`.
 
-## Planned packages
+## Current packages
+
+| Package | Responsibility | State |
+| ------- | -------------- | ----- |
+| [`@recon-os/core`](core) | Shared domain types and interfaces (the platform vocabulary). | Types only; no logic. |
+| [`@recon-os/config`](config) | Shared TypeScript, ESLint, and Prettier configuration. | Tooling; not built. |
+| [`@recon-os/sdk`](sdk) | Reserved client contract for embedding Recon-OS. | Interface skeleton. |
+| [`@recon-os/cli`](cli) | Reserved command-line surface. | Identity + command contract. |
+
+## Planned engine packages
 
 | Package | Roadmap phase | Responsibility |
 | ------- | ------------- | -------------- |
@@ -20,6 +30,9 @@ intentionally empty in the engineering-foundation phase.
 | evaluation-engine | 7 | Retrieval and generation quality measurement. |
 | experiment-tracking | 8 | Versioned, comparable runs and metrics. |
 
-Each package must expose a stable interface and ship with its own specification under
-[`docs/architecture/`](../docs/architecture/). Do not add packages before the corresponding
-roadmap phase begins.
+## Boundaries
+
+- Engine packages build on `@recon-os/core` for their domain types.
+- Each package exposes a stable interface and ships its own specification under
+  [`docs/architecture/`](../docs/architecture/).
+- Do not add a package before the corresponding roadmap phase begins.
