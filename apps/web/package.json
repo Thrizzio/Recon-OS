@@ -1,0 +1,16 @@
+{
+  "name": "@recon-os/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reserved dashboard frontend for Recon-OS.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "echo \"@recon-os/web is a skeleton; the build pipeline lands in a later phase.\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo \"No tests for @recon-os/web yet.\""
+  }
+}

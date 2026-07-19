@@ -1,0 +1,16 @@
+{
+  "name": "@recon-os/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reserved backend service for Recon-OS.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "echo \"@recon-os/api is a skeleton; the build pipeline lands in a later phase.\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo \"No tests for @recon-os/api yet.\""
+  }
+}
