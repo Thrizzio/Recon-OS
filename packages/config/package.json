@@ -1,0 +1,24 @@
+{
+  "name": "@recon-os/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared TypeScript, ESLint, and Prettier configuration for Recon-OS.",
+  "license": "Apache-2.0",
+  "files": [
+    "tsconfig.base.json",
+    "eslint.config.js",
+    "prettier.config.js"
+  ],
+  "scripts": {
+    "lint": "echo \"@recon-os/config is configuration-only; lint runs from the root.\"",
+    "format": "echo \"@recon-os/config is configuration-only; format runs from the root.\"",
+    "format:check": "echo \"@recon-os/config is configuration-only.\"",
+    "typecheck": "echo \"@recon-os/config has no source to typecheck.\"",
+    "test": "echo \"No tests for @recon-os/config.\""
+  },
+  "dependencies": {
+    "@eslint/js": "^9.13.0",
+    "typescript-eslint": "^8.13.0"
+  }
+}
