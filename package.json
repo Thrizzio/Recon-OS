@@ -1,0 +1,36 @@
+{
+  "name": "recon-os",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Engineering platform for production-grade Retrieval-Augmented Generation systems.",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/hardikkaurani/Recon-OS",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hardikkaurani/Recon-OS.git"
+  },
+  "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" run build",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format",
+    "format:check": "pnpm -r run format:check",
+    "test": "pnpm -r run test && node --test tests/workspace.test.mjs",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "validate": "pnpm run typecheck && pnpm run lint && pnpm run check:boundaries"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@recon-os/config": "workspace:*",
+    "eslint": "^9.13.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.13.0"
+  }
+}

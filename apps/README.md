@@ -1,21 +1,24 @@
 # Applications
 
-This directory hosts deployable Recon-OS applications. It is intentionally empty in the
-engineering-foundation phase.
+This directory hosts the deployable Recon-OS applications. Each application is its own
+workspace package under `apps/*` so it can be built, tested, and released independently.
 
 - **Purpose:** Contain end-user and operator-facing surfaces built on the `packages/`
   libraries.
-- **Audience:** Maintainers adding a new application (dashboard, CLI, SDK).
-- **When to update:** When a new application package is introduced.
+- **Audience:** Maintainers adding or working on an application.
+- **When to update:** When an application package is added or its scope changes.
 - **Expansion:** See phases 9-11 in `ROADMAP.md` (Dashboard, CLI, SDK).
 
-## Planned applications
+## Packages
 
-| Application | Roadmap phase | Description |
-| ----------- | ------------- | ----------- |
-| Dashboard | 9 | Observability and analytics surface. |
-| CLI | 10 | Command-line entry point for local workflows. |
-| SDK | 11 | Programmatic API for embedding Recon-OS. |
+| Package | Roadmap phase | Description | State |
+| ------- | ------------- | ----------- | ----- |
+| [`@recon-os/api`](api) | 5-8, 11 | Backend service. | Skeleton: identity + server contract, no endpoints. |
+| [`@recon-os/web`](web) | 9 | Dashboard frontend. | Skeleton: identity + route contract, no UI. |
 
-Each application should be its own package with an explicit boundary and its own
-documentation. Do not add application code before the corresponding roadmap phase begins.
+## Boundaries
+
+- Applications depend on `packages/*` libraries; libraries never depend back on
+  applications. This is enforced by `scripts/check-boundaries.mjs`.
+- Each application owns its framework choice and build pipeline (added in later phases).
+- Do not add application logic before the corresponding roadmap phase begins.

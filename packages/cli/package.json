@@ -1,0 +1,31 @@
+{
+  "name": "@recon-os/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reserved command-line interface for Recon-OS.",
+  "license": "Apache-2.0",
+  "bin": {
+    "recon": "bin/recon.mjs"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo \"No tests for @recon-os/cli yet.\""
+  }
+}

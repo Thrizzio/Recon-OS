@@ -22,6 +22,17 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   template.
 - Minimal GitHub Actions workflow (`.github/workflows/ci.yml`).
 - Cross-platform repository hygiene: `.gitignore`, `.editorconfig`, `.gitattributes`.
+- Monorepo workspace using pnpm workspaces (`pnpm-workspace.yaml`, root `package.json`).
+- Shared configuration package [`packages/config`](packages/config): TypeScript
+  (`tsconfig.base.json`), ESLint, and Prettier, reused across packages.
+- Package skeletons: `@recon-os/core` (domain types and interfaces), `@recon-os/sdk`,
+  `@recon-os/cli`.
+- Application skeletons: `@recon-os/api`, `@recon-os/web`.
+- Root tooling scripts: `build`, `typecheck`, `lint`, `format`, `test`,
+  `check:boundaries`, `validate`.
+- Workspace validation: `tests/workspace.test.mjs` and `scripts/check-boundaries.mjs`
+  (enforces package dependency direction, no upward deps).
+- CI extended to install the workspace and run typecheck, lint, test, and boundary checks.
 
 ### Notes
 
