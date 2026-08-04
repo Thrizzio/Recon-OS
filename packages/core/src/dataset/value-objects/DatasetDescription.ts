@@ -1,3 +1,5 @@
+import { InvalidDatasetError } from "../errors/DatasetError.js";
+
 /**
  * Optional description of a Dataset.
  * Immutable value object. Can be null or empty string to indicate no description.
@@ -7,7 +9,7 @@ export class DatasetDescription {
 
   constructor(value: string | null) {
     if (value !== null && typeof value !== "string") {
-      throw new Error("DatasetDescription must be a string or null");
+      throw new InvalidDatasetError("DatasetDescription must be a string or null");
     }
     this.value = value === null ? null : value.trim();
   }

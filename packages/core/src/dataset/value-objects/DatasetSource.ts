@@ -1,3 +1,5 @@
+import { InvalidDatasetError } from "../errors/DatasetError.js";
+
 /**
  * Source of a dataset (e.g., file path, URL, S3 bucket).
  * Immutable value object.
@@ -9,10 +11,10 @@ export class DatasetSource {
 
   constructor(type: string, uri: string, config: Record<string, unknown> = {}) {
     if (!type || typeof type !== "string") {
-      throw new Error("DatasetSource type must be a non-empty string");
+      throw new InvalidDatasetError("DatasetSource type must be a non-empty string");
     }
     if (!uri || typeof uri !== "string") {
-      throw new Error("DatasetSource uri must be a non-empty string");
+      throw new InvalidDatasetError("DatasetSource uri must be a non-empty string");
     }
     this.type = type.toLowerCase().trim();
     this.uri = uri.trim();

@@ -1,3 +1,5 @@
+import { InvalidDocumentError } from "../errors/DatasetError.js";
+
 /**
  * MIME type (e.g., 'text/plain', 'application/pdf').
  * Immutable value object.
@@ -7,12 +9,12 @@ export class MimeType {
 
   constructor(value: string) {
     if (!value || typeof value !== "string") {
-      throw new Error("MimeType must be a non-empty string");
+      throw new InvalidDocumentError("MimeType must be a non-empty string");
     }
     // Basic validation: should contain a slash and not contain disallowed characters
     const trimmed = value.trim();
     if (!trimmed.includes("/")) {
-      throw new Error('MimeType must contain a slash (e.g., "text/plain")');
+      throw new InvalidDocumentError('MimeType must contain a slash (e.g., "text/plain")');
     }
     // Optional: more robust validation
     this.value = trimmed.toLowerCase();

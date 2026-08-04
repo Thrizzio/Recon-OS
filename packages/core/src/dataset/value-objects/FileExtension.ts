@@ -1,3 +1,5 @@
+import { InvalidDocumentError } from "../errors/DatasetError.js";
+
 /**
  * File extension (e.g., 'pdf', 'md').
  * Immutable value object.
@@ -7,12 +9,12 @@ export class FileExtension {
 
   constructor(value: string) {
     if (!value || typeof value !== "string") {
-      throw new Error("FileExtension must be a non-empty string");
+      throw new InvalidDocumentError("FileExtension must be a non-empty string");
     }
     // Remove leading dot if present and convert to lowercase
     const cleaned = value.replace(/^\./, "").toLowerCase();
     if (!/^[a-z0-9]+$/.test(cleaned)) {
-      throw new Error("FileExtension must contain only alphanumeric characters");
+      throw new InvalidDocumentError("FileExtension must contain only alphanumeric characters");
     }
     this.value = cleaned;
   }

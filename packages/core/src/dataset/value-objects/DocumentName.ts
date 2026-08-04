@@ -1,3 +1,5 @@
+import { InvalidDocumentError } from "../errors/DatasetError.js";
+
 /**
  * Name of a Document (e.g., file name).
  * Immutable value object.
@@ -7,7 +9,7 @@ export class DocumentName {
 
   constructor(value: string) {
     if (!value || typeof value !== "string") {
-      throw new Error("DocumentName must be a non-empty string");
+      throw new InvalidDocumentError("DocumentName must be a non-empty string");
     }
     this.value = value;
   }

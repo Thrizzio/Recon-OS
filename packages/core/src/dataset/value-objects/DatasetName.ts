@@ -1,3 +1,5 @@
+import { InvalidDatasetError } from "../errors/DatasetError.js";
+
 /**
  * Name of a Dataset.
  * Immutable value object.
@@ -7,11 +9,11 @@ export class DatasetName {
 
   constructor(value: string) {
     if (!value || typeof value !== "string") {
-      throw new Error("DatasetName must be a non-empty string");
+      throw new InvalidDatasetError("DatasetName must be a non-empty string");
     }
     this.value = value.trim();
     if (!this.value) {
-      throw new Error("DatasetName must not be empty after trimming");
+      throw new InvalidDatasetError("DatasetName must not be empty after trimming");
     }
   }
 

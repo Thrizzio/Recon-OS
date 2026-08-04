@@ -1,3 +1,5 @@
+import { InvalidDocumentError } from "../errors/DatasetError.js";
+
 /**
  * Character encoding (e.g., 'UTF-8', 'ISO-8859-1').
  * Immutable value object.
@@ -7,12 +9,12 @@ export class Encoding {
 
   constructor(value: string) {
     if (!value || typeof value !== "string") {
-      throw new Error("Encoding must be a non-empty string");
+      throw new InvalidDocumentError("Encoding must be a non-empty string");
     }
     // Common encodings: we could validate against a list, but for now just trim and uppercase
     const trimmed = value.trim();
     if (!trimmed) {
-      throw new Error("Encoding must not be empty");
+      throw new InvalidDocumentError("Encoding must not be empty");
     }
     this.value = trimmed.toUpperCase();
   }

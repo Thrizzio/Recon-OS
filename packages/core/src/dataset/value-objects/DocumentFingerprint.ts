@@ -1,3 +1,5 @@
+import { InvalidDocumentError } from "../errors/DatasetError.js";
+
 /**
  * Fingerprint of a Document, typically a hash of its content.
  * Immutable value object.
@@ -8,10 +10,10 @@ export class DocumentFingerprint {
 
   constructor(checksum: string, algorithm: string = "SHA-256") {
     if (!checksum || typeof checksum !== "string") {
-      throw new Error("DocumentFingerprint checksum must be a non-empty string");
+      throw new InvalidDocumentError("DocumentFingerprint checksum must be a non-empty string");
     }
     if (!algorithm || typeof algorithm !== "string") {
-      throw new Error("DocumentFingerprint algorithm must be a non-empty string");
+      throw new InvalidDocumentError("DocumentFingerprint algorithm must be a non-empty string");
     }
     this.checksum = checksum.toLowerCase();
     this.algorithm = algorithm.toUpperCase();

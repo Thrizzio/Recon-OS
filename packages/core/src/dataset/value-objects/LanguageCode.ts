@@ -1,3 +1,5 @@
+import { InvalidDocumentError } from "../errors/DatasetError.js";
+
 /**
  * Language code (e.g., 'en', 'es', 'fr').
  * Immutable value object.
@@ -7,7 +9,7 @@ export class LanguageCode {
 
   constructor(value: string) {
     if (!value || typeof value !== "string") {
-      throw new Error("LanguageCode must be a non-empty string");
+      throw new InvalidDocumentError("LanguageCode must be a non-empty string");
     }
     // Expecting ISO 639-1 two-letter code, but we'll accept any non-empty string for flexibility
     this.value = value.toLowerCase().trim();

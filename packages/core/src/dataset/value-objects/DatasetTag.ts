@@ -1,3 +1,5 @@
+import { InvalidDatasetError } from "../errors/DatasetError.js";
+
 /**
  * Tag for categorizing a Dataset.
  * Immutable value object.
@@ -7,11 +9,11 @@ export class DatasetTag {
 
   constructor(value: string) {
     if (!value || typeof value !== "string") {
-      throw new Error("DatasetTag must be a non-empty string");
+      throw new InvalidDatasetError("DatasetTag must be a non-empty string");
     }
     this.value = value.trim();
     if (!this.value) {
-      throw new Error("DatasetTag must not be empty or only whitespace");
+      throw new InvalidDatasetError("DatasetTag must not be empty or only whitespace");
     }
   }
 
