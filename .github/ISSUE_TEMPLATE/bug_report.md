@@ -3,7 +3,7 @@ name: Bug report
 about: Report a defect in the repository or its tooling
 title: "[bug]: "
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
 ## Description

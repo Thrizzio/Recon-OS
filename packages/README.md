@@ -11,24 +11,24 @@ its own workspace member under `packages/*`.
 
 ## Current packages
 
-| Package | Responsibility | State |
-| ------- | -------------- | ----- |
-| [`@recon-os/core`](core) | Shared domain types and interfaces (the platform vocabulary). | Types only; no logic. |
-| [`@recon-os/config`](config) | Shared TypeScript, ESLint, and Prettier configuration. | Tooling; not built. |
-| [`@recon-os/sdk`](sdk) | Reserved client contract for embedding Recon-OS. | Interface skeleton. |
-| [`@recon-os/cli`](cli) | Reserved command-line surface. | Identity + command contract. |
+| Package                      | Responsibility                                                | State                        |
+| ---------------------------- | ------------------------------------------------------------- | ---------------------------- |
+| [`@recon-os/core`](core)     | Shared domain types and interfaces (the platform vocabulary). | Types only; no logic.        |
+| [`@recon-os/config`](config) | Shared TypeScript, ESLint, and Prettier configuration.        | Tooling; not built.          |
+| [`@recon-os/sdk`](sdk)       | Reserved client contract for embedding Recon-OS.              | Interface skeleton.          |
+| [`@recon-os/cli`](cli)       | Reserved command-line surface.                                | Identity + command contract. |
 
 ## Planned engine packages
 
-| Package | Roadmap phase | Responsibility |
-| ------- | ------------- | -------------- |
-| dataset-engine | 2 | Corpus versioning and reproducible splits. |
-| chunking-engine | 3 | Deterministic, configurable chunking. |
-| embedding-engine | 4 | Pluggable embedding providers. |
-| vector-store | 5 | Store-agnostic persistence and search. |
-| retriever | 6 | Hybrid retrieval and re-ranking. |
-| evaluation-engine | 7 | Retrieval and generation quality measurement. |
-| experiment-tracking | 8 | Versioned, comparable runs and metrics. |
+| Package             | Roadmap phase | Responsibility                                |
+| ------------------- | ------------- | --------------------------------------------- |
+| dataset-engine      | 2             | Corpus versioning and reproducible splits.    |
+| chunking-engine     | 3             | Deterministic, configurable chunking.         |
+| embedding-engine    | 4             | Pluggable embedding providers.                |
+| vector-store        | 5             | Store-agnostic persistence and search.        |
+| retriever           | 6             | Hybrid retrieval and re-ranking.              |
+| evaluation-engine   | 7             | Retrieval and generation quality measurement. |
+| experiment-tracking | 8             | Versioned, comparable runs and metrics.       |
 
 ## Boundaries
 

@@ -35,18 +35,18 @@ addition, not a refactor.
 The following modules are planned. None are implemented yet; this section documents the
 intended shape of the system.
 
-| Module | Responsibility |
-| ------ | -------------- |
-| Dataset Engine | Corpus ingestion, versioning, and reproducible splits. |
-| Chunking Engine | Deterministic, configurable document segmentation. |
-| Embedding Engine | Pluggable text-to-vector encoding. |
-| Vector Store Integration | Store-agnostic persistence and similarity search. |
-| Retriever Framework | Query routing, hybrid search, and re-ranking. |
-| Evaluation Engine | Retrieval and generation quality measurement. |
-| Experiment Tracking | Versioned, comparable runs and metrics. |
-| Dashboard | Observability and analytics surface. |
-| CLI | Command-line entry point for local workflows. |
-| SDK | Programmatic API for embedding Recon-OS in other systems. |
+| Module                   | Responsibility                                            |
+| ------------------------ | --------------------------------------------------------- |
+| Dataset Engine           | Corpus ingestion, versioning, and reproducible splits.    |
+| Chunking Engine          | Deterministic, configurable document segmentation.        |
+| Embedding Engine         | Pluggable text-to-vector encoding.                        |
+| Vector Store Integration | Store-agnostic persistence and similarity search.         |
+| Retriever Framework      | Query routing, hybrid search, and re-ranking.             |
+| Evaluation Engine        | Retrieval and generation quality measurement.             |
+| Experiment Tracking      | Versioned, comparable runs and metrics.                   |
+| Dashboard                | Observability and analytics surface.                      |
+| CLI                      | Command-line entry point for local workflows.             |
+| SDK                      | Programmatic API for embedding Recon-OS in other systems. |
 
 ## Workspace and package topology
 
@@ -54,14 +54,14 @@ The repository is a pnpm workspace. Source is organized so future engines have a
 home and the dependency graph stays acyclic. See the
 [monorepo layout in the README](../README.md#monorepo-layout) for the command reference.
 
-| Package | Kind | Responsibility |
-| ------- | ---- | -------------- |
-| `@recon-os/core` | library | Shared domain types and interfaces used across the platform. |
-| `@recon-os/config` | tooling | Shared TypeScript, ESLint, and Prettier configuration. |
-| `@recon-os/sdk` | library | Reserved client contract for embedding Recon-OS. |
-| `@recon-os/cli` | library | Reserved command-line surface. |
-| `@recon-os/api` | application | Reserved backend service. |
-| `@recon-os/web` | application | Reserved dashboard frontend. |
+| Package            | Kind        | Responsibility                                               |
+| ------------------ | ----------- | ------------------------------------------------------------ |
+| `@recon-os/core`   | library     | Shared domain types and interfaces used across the platform. |
+| `@recon-os/config` | tooling     | Shared TypeScript, ESLint, and Prettier configuration.       |
+| `@recon-os/sdk`    | library     | Reserved client contract for embedding Recon-OS.             |
+| `@recon-os/cli`    | library     | Reserved command-line surface.                               |
+| `@recon-os/api`    | application | Reserved backend service.                                    |
+| `@recon-os/web`    | application | Reserved dashboard frontend.                                 |
 
 Dependency rules:
 

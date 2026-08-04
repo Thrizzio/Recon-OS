@@ -12,11 +12,11 @@ stable overview; specifics live here.
 
 ## Contents
 
-| Document | Status | Description |
-| -------- | ------ | ----------- |
-| `ARCHITECTURE.md` (repo root) | Current | System-wide overview and data flow. |
-| Module specs | Planned | One document per engine once specified. |
-| ADRs | Planned | Architecture Decision Records for notable trade-offs. |
+| Document                      | Status  | Description                                           |
+| ----------------------------- | ------- | ----------------------------------------------------- |
+| `ARCHITECTURE.md` (repo root) | Current | System-wide overview and data flow.                   |
+| Module specs                  | Planned | One document per engine once specified.               |
+| ADRs                          | Planned | Architecture Decision Records for notable trade-offs. |
 
 ## Conventions
 

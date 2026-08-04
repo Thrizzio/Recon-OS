@@ -3,7 +3,7 @@ name: Documentation
 about: Report missing, unclear, or incorrect documentation
 title: "[docs]: "
 labels: documentation
-assignees: ''
+assignees: ""
 ---
 
 ## Location
