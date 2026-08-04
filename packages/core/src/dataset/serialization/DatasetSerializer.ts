@@ -134,16 +134,27 @@ export class DatasetSerializer {
 
     const source = DatasetSource.from(json.source.type, json.source.uri);
     const storagePath = json.storagePath ? URI.from(json.storagePath) : null;
-    const status = (json.status as DatasetStatus) ?? DatasetStatus.DRAFT;
+
+    if (!json.status || !Object.values(DatasetStatus).includes(json.status as DatasetStatus)) {
+      throw new InvalidDatasetError(`Invalid dataset status in JSON payload: "${json.status}"`);
+    }
+    const status = json.status as DatasetStatus;
+
     const description = json.description ? DatasetDescription.from(json.description) : null;
 
-    const createdAt = json.createdAt
-      ? new Timestamp(new Date(json.createdAt))
-      : new Timestamp(new Date());
+    const parseTimestamp = (dateStr: string | undefined, fieldName: string): Timestamp => {
+      if (!dateStr || typeof dateStr !== "string") {
+        throw new InvalidDatasetError(`Dataset JSON payload requires valid ISO string for ${fieldName}`);
+      }
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        throw new InvalidDatasetError(`Invalid date format for ${fieldName}: "${dateStr}"`);
+      }
+      return new Timestamp(dateStr);
+    };
 
-    const updatedAt = json.updatedAt
-      ? new Timestamp(new Date(json.updatedAt))
-      : new Timestamp(new Date());
+    const createdAt = parseTimestamp(json.createdAt, "createdAt");
+    const updatedAt = parseTimestamp(json.updatedAt, "updatedAt");
 
     const tags = new Set<DatasetTag>(
       (json.tags ?? []).map((tagStr) => DatasetTag.from(tagStr))

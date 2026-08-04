@@ -1,3 +1,5 @@
+import { InvalidDatasetError } from "../errors/DatasetError.js";
+
 /**
  * Statistics for a Dataset.
  * Immutable value object.
@@ -9,13 +11,13 @@ export class DatasetStatistics {
 
   constructor(documentCount: number = 0, totalSizeBytes: number = 0, averageSizeBytes: number = 0) {
     if (documentCount < 0) {
-      throw new Error("documentCount cannot be negative");
+      throw new InvalidDatasetError("documentCount cannot be negative");
     }
     if (totalSizeBytes < 0) {
-      throw new Error("totalSizeBytes cannot be negative");
+      throw new InvalidDatasetError("totalSizeBytes cannot be negative");
     }
     if (averageSizeBytes < 0) {
-      throw new Error("averageSizeBytes cannot be negative");
+      throw new InvalidDatasetError("averageSizeBytes cannot be negative");
     }
     this.documentCount = documentCount;
     this.totalSizeBytes = totalSizeBytes;

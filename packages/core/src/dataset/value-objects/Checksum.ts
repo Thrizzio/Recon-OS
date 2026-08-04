@@ -1,3 +1,5 @@
+import { InvalidDocumentError } from "../errors/DatasetError.js";
+
 /**
  * Cryptographic checksum (e.g., SHA-256) of content.
  * Immutable value object.
@@ -8,7 +10,7 @@ export class Checksum {
 
   constructor(value: string, algorithm: string = "SHA-256") {
     if (!value || typeof value !== "string") {
-      throw new Error("Checksum must be a non-empty string");
+      throw new InvalidDocumentError("Checksum must be a non-empty string");
     }
     // Optionally validate the format (hex digits) based on algorithm
     this.value = value;

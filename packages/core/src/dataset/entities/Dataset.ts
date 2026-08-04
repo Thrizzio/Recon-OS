@@ -77,7 +77,7 @@ export class Dataset {
     this.description = props.description ?? null;
     this.createdAt = props.createdAt ?? new Timestamp(new Date());
     this.updatedAt = props.updatedAt ?? new Timestamp(new Date());
-    this.tags = new Set(props.tags ?? []);
+    this.tags = Dataset.deduplicateTags(props.tags ?? []);
     this.statistics = props.statistics ?? new DatasetStatistics();
     this.metadata = props.metadata ?? DocumentMetadata.empty();
   }
@@ -212,26 +212,43 @@ export class Dataset {
     });
   }
 
-  /** Returns a new Dataset instance with an added tag */
+  /** Returns a new Dataset instance with an added tag (using value equality) */
   public addTag(tag: DatasetTag): Dataset {
-    const newTags = new Set(this.tags);
-    newTags.add(tag);
+    const tagMap = new Map<string, DatasetTag>();
+    for (const t of this.tags) {
+      tagMap.set(t.getValue(), t);
+    }
+    tagMap.set(tag.getValue(), tag);
     return new Dataset({
       ...this.toProps(),
-      tags: newTags,
+      tags: new Set(tagMap.values()),
       updatedAt: new Timestamp(new Date()),
     });
   }
 
-  /** Returns a new Dataset instance with a removed tag */
+  /** Returns a new Dataset instance with a removed tag (using value equality) */
   public removeTag(tag: DatasetTag): Dataset {
-    const newTags = new Set(this.tags);
-    newTags.delete(tag);
+    const tagMap = new Map<string, DatasetTag>();
+    for (const t of this.tags) {
+      if (!t.equals(tag)) {
+        tagMap.set(t.getValue(), t);
+      }
+    }
     return new Dataset({
       ...this.toProps(),
-      tags: newTags,
+      tags: new Set(tagMap.values()),
       updatedAt: new Timestamp(new Date()),
     });
+  }
+
+  private static deduplicateTags(tags: Iterable<DatasetTag>): Set<DatasetTag> {
+    const map = new Map<string, DatasetTag>();
+    for (const tag of tags) {
+      if (tag && typeof tag.getValue === "function") {
+        map.set(tag.getValue(), tag);
+      }
+    }
+    return new Set(map.values());
   }
 
   /** Returns a new Dataset instance with updated statistics */

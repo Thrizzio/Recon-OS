@@ -123,14 +123,26 @@ export class DatasetRegistrationSchema {
     }
 
     const tags = new Set<DatasetTag>();
-    if (input.tags) {
-      if (Array.isArray(input.tags)) {
-        for (const t of input.tags) {
-          tags.add(typeof t === "string" ? DatasetTag.from(t) : t);
-        }
-      } else if (input.tags instanceof Set) {
-        for (const t of input.tags) {
-          tags.add(typeof t === "string" ? DatasetTag.from(t) : t);
+    if (input.tags !== undefined && input.tags !== null) {
+      const tagItems = Array.isArray(input.tags)
+        ? input.tags
+        : input.tags instanceof Set
+          ? Array.from(input.tags)
+          : null;
+
+      if (!tagItems) {
+        throw new InvalidDatasetError("Dataset tags must be an Array or Set");
+      }
+
+      for (const t of tagItems) {
+        if (t instanceof DatasetTag) {
+          tags.add(t);
+        } else if (typeof t === "string") {
+          tags.add(DatasetTag.from(t));
+        } else {
+          throw new InvalidDatasetError(
+            `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`
+          );
         }
       }
     }
@@ -233,15 +245,27 @@ export class DatasetUpdateSchema {
           : DocumentMetadata.from(input.metadata);
     }
 
-    if (input.tags !== undefined) {
+    if (input.tags !== undefined && input.tags !== null) {
       const tags = new Set<DatasetTag>();
-      if (Array.isArray(input.tags)) {
-        for (const t of input.tags) {
-          tags.add(typeof t === "string" ? DatasetTag.from(t) : t);
-        }
-      } else if (input.tags instanceof Set) {
-        for (const t of input.tags) {
-          tags.add(typeof t === "string" ? DatasetTag.from(t) : t);
+      const tagItems = Array.isArray(input.tags)
+        ? input.tags
+        : input.tags instanceof Set
+          ? Array.from(input.tags)
+          : null;
+
+      if (!tagItems) {
+        throw new InvalidDatasetError("Dataset tags must be an Array or Set");
+      }
+
+      for (const t of tagItems) {
+        if (t instanceof DatasetTag) {
+          tags.add(t);
+        } else if (typeof t === "string") {
+          tags.add(DatasetTag.from(t));
+        } else {
+          throw new InvalidDatasetError(
+            `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`
+          );
         }
       }
       result.tags = tags;
