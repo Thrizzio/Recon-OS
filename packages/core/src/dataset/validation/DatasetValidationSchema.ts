@@ -135,12 +135,12 @@ export class DatasetRegistrationSchema {
       }
     }
 
-    let status = DatasetStatus.DRAFT;
-    if (input.status) {
-      if (!Object.values(DatasetStatus).includes(input.status)) {
+    let status: DatasetStatus = DatasetStatus.DRAFT;
+    if (input.status !== undefined) {
+      if (!Object.values(DatasetStatus).includes(input.status as DatasetStatus)) {
         throw new InvalidDatasetError(`Invalid dataset status: ${input.status}`);
       }
-      status = input.status;
+      status = input.status as DatasetStatus;
     }
 
     return {
