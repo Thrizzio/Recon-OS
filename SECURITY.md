@@ -13,11 +13,11 @@ or publicity.
 
 ## Supported versions
 
-| Version | Supported |
-| ------- | --------- |
-| `main` | Yes (development branch) |
-| Latest stable release | Yes |
-| Older releases | No |
+| Version               | Supported                |
+| --------------------- | ------------------------ |
+| `main`                | Yes (development branch) |
+| Latest stable release | Yes                      |
+| Older releases        | No                       |
 
 > Replace this table with concrete release lines once the first stable version is tagged.
 
@@ -26,7 +26,7 @@ or publicity.
 Please report security issues privately. Do **not** open a public issue for vulnerabilities.
 
 1. Use GitHub's private vulnerability reporting for this repository, or
-2. Email the maintainers at `<SECURITY_CONTACT@example.com>` *(placeholder)*.
+2. Email the maintainers at `<SECURITY_CONTACT@example.com>` _(placeholder)_.
 
 Include:
 

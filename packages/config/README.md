@@ -11,11 +11,11 @@ consistent without duplicating configuration.
 
 ## What it provides
 
-| File | Consumer | Use |
-| ---- | -------- | --- |
-| `tsconfig.base.json` | TypeScript packages | Base compiler options, extended per package. |
-| `eslint.config.js` | Root `eslint.config.js` | Flat ESLint config, re-exported at the repo root. |
-| `prettier.config.js` | Root `prettier.config.js` | Formatter options, re-exported at the repo root. |
+| File                 | Consumer                  | Use                                               |
+| -------------------- | ------------------------- | ------------------------------------------------- |
+| `tsconfig.base.json` | TypeScript packages       | Base compiler options, extended per package.      |
+| `eslint.config.js`   | Root `eslint.config.js`   | Flat ESLint config, re-exported at the repo root. |
+| `prettier.config.js` | Root `prettier.config.js` | Formatter options, re-exported at the repo root.  |
 
 ## How packages consume it
 

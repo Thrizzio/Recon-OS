@@ -38,15 +38,15 @@ contract. CI runs the same checks on every pull request.
 
 ## Where things live
 
-| Path | Contents |
-| ---- | -------- |
-| `packages/core` | Shared domain types and interfaces. |
-| `packages/config` | Shared TypeScript / ESLint / Prettier config. |
-| `packages/sdk` | Reserved SDK client contract. |
-| `packages/cli` | Reserved CLI surface. |
-| `apps/api` | Reserved backend service skeleton. |
-| `apps/web` | Reserved dashboard frontend skeleton. |
-| `docs/architecture/` | Per-module specifications and ADRs. |
+| Path                 | Contents                                      |
+| -------------------- | --------------------------------------------- |
+| `packages/core`      | Shared domain types and interfaces.           |
+| `packages/config`    | Shared TypeScript / ESLint / Prettier config. |
+| `packages/sdk`       | Reserved SDK client contract.                 |
+| `packages/cli`       | Reserved CLI surface.                         |
+| `apps/api`           | Reserved backend service skeleton.            |
+| `apps/web`           | Reserved dashboard frontend skeleton.         |
+| `docs/architecture/` | Per-module specifications and ADRs.           |
 
 ## Next steps for contributors
 

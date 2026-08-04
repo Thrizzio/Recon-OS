@@ -3,7 +3,7 @@ name: Feature request
 about: Propose a new capability or module
 title: "[feature]: "
 labels: enhancement
-assignees: ''
+assignees: ""
 ---
 
 ## Problem

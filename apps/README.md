@@ -11,10 +11,10 @@ workspace package under `apps/*` so it can be built, tested, and released indepe
 
 ## Packages
 
-| Package | Roadmap phase | Description | State |
-| ------- | ------------- | ----------- | ----- |
-| [`@recon-os/api`](api) | 5-8, 11 | Backend service. | Skeleton: identity + server contract, no endpoints. |
-| [`@recon-os/web`](web) | 9 | Dashboard frontend. | Skeleton: identity + route contract, no UI. |
+| Package                | Roadmap phase | Description         | State                                               |
+| ---------------------- | ------------- | ------------------- | --------------------------------------------------- |
+| [`@recon-os/api`](api) | 5-8, 11       | Backend service.    | Skeleton: identity + server contract, no endpoints. |
+| [`@recon-os/web`](web) | 9             | Dashboard frontend. | Skeleton: identity + route contract, no UI.         |
 
 ## Boundaries
 

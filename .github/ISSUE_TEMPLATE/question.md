@@ -3,7 +3,7 @@ name: Question
 about: Ask a question about the project, design, or usage
 title: "[question]: "
 labels: question
-assignees: ''
+assignees: ""
 ---
 
 ## Question

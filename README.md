@@ -30,7 +30,7 @@ Recon-OS exists to make that infrastructure a shared, well-maintained asset:
 - Evaluation is first-class, not an afterthought.
 - Datasets and experiments are versioned and comparable.
 - Components are modular so any store, model, or retriever can be swapped.
-- Decisions are recorded so future contributors understand *why*, not just *what*.
+- Decisions are recorded so future contributors understand _why_, not just _what_.
 
 ## Problem statement
 
@@ -150,27 +150,27 @@ Recon-OS is a pnpm workspace. The root [`package.json`](package.json) and
 [`pnpm-workspace.yaml`](pnpm-workspace.yaml) declare the workspace; every package under
 `apps/` and `packages/` is a member.
 
-| Area | Package | Role |
-| ---- | ------- | ---- |
-| `packages/core` | `@recon-os/core` | Shared domain types and interfaces. |
+| Area              | Package            | Role                                        |
+| ----------------- | ------------------ | ------------------------------------------- |
+| `packages/core`   | `@recon-os/core`   | Shared domain types and interfaces.         |
 | `packages/config` | `@recon-os/config` | Shared TypeScript, ESLint, Prettier config. |
-| `packages/sdk` | `@recon-os/sdk` | Reserved SDK client contract. |
-| `packages/cli` | `@recon-os/cli` | Reserved CLI surface. |
-| `apps/api` | `@recon-os/api` | Reserved backend service. |
-| `apps/web` | `@recon-os/web` | Reserved dashboard frontend. |
+| `packages/sdk`    | `@recon-os/sdk`    | Reserved SDK client contract.               |
+| `packages/cli`    | `@recon-os/cli`    | Reserved CLI surface.                       |
+| `apps/api`        | `@recon-os/api`    | Reserved backend service.                   |
+| `apps/web`        | `@recon-os/web`    | Reserved dashboard frontend.                |
 
 Root scripts operate across the workspace:
 
-| Script | What it does |
-| ------ | ------------ |
-| `pnpm install` | Install all workspace dependencies. |
-| `pnpm build` | Build library packages (`packages/*`). |
-| `pnpm typecheck` | Type-check every package. |
-| `pnpm lint` | Lint every package with the shared ESLint config. |
-| `pnpm format` | Format every package with Prettier. |
-| `pnpm test` | Run package tests and the workspace validation suite. |
+| Script                  | What it does                                           |
+| ----------------------- | ------------------------------------------------------ |
+| `pnpm install`          | Install all workspace dependencies.                    |
+| `pnpm build`            | Build library packages (`packages/*`).                 |
+| `pnpm typecheck`        | Type-check every package.                              |
+| `pnpm lint`             | Lint every package with the shared ESLint config.      |
+| `pnpm format`           | Format every package with Prettier.                    |
+| `pnpm test`             | Run package tests and the workspace validation suite.  |
 | `pnpm check:boundaries` | Enforce package dependency direction (no upward deps). |
-| `pnpm validate` | Run typecheck, lint, and boundary checks together. |
+| `pnpm validate`         | Run typecheck, lint, and boundary checks together.     |
 
 The dependency direction is one-way: applications depend on packages, and `core` is the
 base every other package builds on. `config` is tooling only and is never imported by
@@ -195,20 +195,20 @@ diagram.
 
 ## Roadmap summary
 
-| Phase | Milestone | Status |
-| ----- | --------- | ------ |
-| 1 | Engineering Foundation | In progress |
-| 2 | Dataset Engine | Planned |
-| 3 | Chunking Engine | Planned |
-| 4 | Embedding Engine | Planned |
-| 5 | Vector Store Integration | Planned |
-| 6 | Retriever Framework | Planned |
-| 7 | Evaluation Engine | Planned |
-| 8 | Experiment Tracking | Planned |
-| 9 | Dashboard | Planned |
-| 10 | CLI | Planned |
-| 11 | SDK | Planned |
-| 12 | Production Release | Planned |
+| Phase | Milestone                | Status      |
+| ----- | ------------------------ | ----------- |
+| 1     | Engineering Foundation   | In progress |
+| 2     | Dataset Engine           | Planned     |
+| 3     | Chunking Engine          | Planned     |
+| 4     | Embedding Engine         | Planned     |
+| 5     | Vector Store Integration | Planned     |
+| 6     | Retriever Framework      | Planned     |
+| 7     | Evaluation Engine        | Planned     |
+| 8     | Experiment Tracking      | Planned     |
+| 9     | Dashboard                | Planned     |
+| 10    | CLI                      | Planned     |
+| 11    | SDK                      | Planned     |
+| 12    | Production Release       | Planned     |
 
 See [ROADMAP.md](ROADMAP.md) for the rationale behind each phase.
 

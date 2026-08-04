@@ -11,16 +11,18 @@ Recon-OS is an open-source engineering platform designed to benchmark, evaluate,
 Consider a company building a production chatbot powered by internal PDFs, policy documents, knowledge bases, and corporate documentation.
 
 The company encounters critical quality and performance issues:
-* **Wrong Answers & Hallucinations**
-* **Slow Retrieval Latency**
-* **Exorbitant LLM API Costs**
+
+- **Wrong Answers & Hallucinations**
+- **Slow Retrieval Latency**
+- **Exorbitant LLM API Costs**
 
 Recon-OS analyzes the company's RAG pipeline and pinpoints the exact failure mode:
-* *"The problem lies in your embedding model's semantic resolution."*
-* *"Your retriever is missing key relevant context chunks."*
-* *"Your chunk size strategy is breaking critical sentence boundaries."*
-* *"Your prompt template needs context formatting optimization."*
-* *"Embedding Model B will improve retrieval recall by 28% while reducing costs."*
+
+- _"The problem lies in your embedding model's semantic resolution."_
+- _"Your retriever is missing key relevant context chunks."_
+- _"Your chunk size strategy is breaking critical sentence boundaries."_
+- _"Your prompt template needs context formatting optimization."_
+- _"Embedding Model B will improve retrieval recall by 28% while reducing costs."_
 
 > **Key Distinction:** Recon-OS does not generate AI. It makes AI applications measurably better.
 
@@ -45,9 +47,10 @@ Because these components live in silos, developers waste hundreds of engineering
 **Yes. This is a critical engineering bottleneck across the AI industry.**
 
 Currently, engineering teams evaluate pipeline variations through manual, non-scalable guesswork:
-* **Embedding Model A vs. Embedding Model B:** Run queries manually and log scores into Excel spreadsheets.
-* **Prompt Variant A vs. Prompt Variant B:** Eye-test LLM outputs across a few sample questions.
-* **Dense Retrieval vs. Hybrid Search:** Manually inspect top-$k$ retrieved chunks.
+
+- **Embedding Model A vs. Embedding Model B:** Run queries manually and log scores into Excel spreadsheets.
+- **Prompt Variant A vs. Prompt Variant B:** Eye-test LLM outputs across a few sample questions.
+- **Dense Retrieval vs. Hybrid Search:** Manually inspect top-$k$ retrieved chunks.
 
 This manual workflow is error-prone, non-reproducible, and unscalable for production applications.
 
@@ -57,14 +60,14 @@ This manual workflow is error-prone, non-reproducible, and unscalable for produc
 
 Existing tools address individual parts of the stack, but fail to diagnose holistic pipeline failure modes:
 
-| Technology | Role | What It Does | What It Misses |
-| :--- | :--- | :--- | :--- |
-| **LangChain / LlamaIndex** | Orchestration | Constructs pipeline chains & data loaders. | Does not systematically benchmark or diagnose pipeline bottleneck root causes. |
-| **RAGAS / DeepEval** | Evaluation | Calculates standalone evaluation scores. | Lacks versioned dataset state management, pipeline execution tracking, and cross-store benchmarks. |
-| **Phoenix / LangSmith** | Observability | Captures runtime execution traces & logs. | Designed for telemetry monitoring, not programmatic parameter sweep benchmarking or offline diffing. |
-| **Qdrant / Pinecone** | Vector Storage | Stores and retrieves vector embeddings. | Focuses on ANN search speed, not on downstream LLM context relevance or accuracy. |
+| Technology                 | Role           | What It Does                               | What It Misses                                                                                       |
+| :------------------------- | :------------- | :----------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| **LangChain / LlamaIndex** | Orchestration  | Constructs pipeline chains & data loaders. | Does not systematically benchmark or diagnose pipeline bottleneck root causes.                       |
+| **RAGAS / DeepEval**       | Evaluation     | Calculates standalone evaluation scores.   | Lacks versioned dataset state management, pipeline execution tracking, and cross-store benchmarks.   |
+| **Phoenix / LangSmith**    | Observability  | Captures runtime execution traces & logs.  | Designed for telemetry monitoring, not programmatic parameter sweep benchmarking or offline diffing. |
+| **Qdrant / Pinecone**      | Vector Storage | Stores and retrieves vector embeddings.    | Focuses on ANN search speed, not on downstream LLM context relevance or accuracy.                    |
 
-> **The Missing Link:** Existing tools do not tell you *where* your pipeline is failing. Recon-OS explicitly identifies the root cause and recommends the optimal fix.
+> **The Missing Link:** Existing tools do not tell you _where_ your pipeline is failing. Recon-OS explicitly identifies the root cause and recommends the optimal fix.
 
 ---
 
@@ -72,14 +75,14 @@ Existing tools address individual parts of the stack, but fail to diagnose holis
 
 Recon-OS automates answers to the most critical RAG engineering questions:
 
-* ✅ **Which embedding model produces the highest retrieval recall for your domain?**
-* ✅ **Which retriever architecture (Dense, Sparse, or Hybrid) works best?**
-* ✅ **Which chunking strategy and chunk size optimizes context precision?**
-* ✅ **Which prompt template yields the highest faithfulness score?**
-* ✅ **Which LLM balances generation quality, latency, and token cost?**
-* ✅ **Why are hallucinations happening in specific query subsets?**
-* ✅ **Which pipeline configuration minimizes API cost without sacrificing accuracy?**
-* ✅ **Which configuration delivers the fastest p95 retrieval latency?**
+- ✅ **Which embedding model produces the highest retrieval recall for your domain?**
+- ✅ **Which retriever architecture (Dense, Sparse, or Hybrid) works best?**
+- ✅ **Which chunking strategy and chunk size optimizes context precision?**
+- ✅ **Which prompt template yields the highest faithfulness score?**
+- ✅ **Which LLM balances generation quality, latency, and token cost?**
+- ✅ **Why are hallucinations happening in specific query subsets?**
+- ✅ **Which pipeline configuration minimizes API cost without sacrificing accuracy?**
+- ✅ **Which configuration delivers the fastest p95 retrieval latency?**
 
 ---
 
@@ -101,14 +104,14 @@ It is neither just a Python library nor just a web dashboard. It encompasses a c
 
 Recon-OS is built using modern, robust, and scalable technologies:
 
-| Layer | Technologies Used |
-| :--- | :--- |
-| **Frontend Dashboard** | Next.js, React, TypeScript, Tailwind CSS, shadcn/ui |
-| **Backend API** | FastAPI, Python |
-| **Database & Cache** | PostgreSQL (State/Metadata Persistence), Redis (Task Queue & Caching) |
-| **Vector Indexing** | Qdrant |
-| **AI & Evaluation Engines** | LangChain, LlamaIndex, LiteLLM, RAGAS, DeepEval |
-| **DevOps & Infrastructure** | Docker, GitHub Actions CI/CD |
+| Layer                       | Technologies Used                                                     |
+| :-------------------------- | :-------------------------------------------------------------------- |
+| **Frontend Dashboard**      | Next.js, React, TypeScript, Tailwind CSS, shadcn/ui                   |
+| **Backend API**             | FastAPI, Python                                                       |
+| **Database & Cache**        | PostgreSQL (State/Metadata Persistence), Redis (Task Queue & Caching) |
+| **Vector Indexing**         | Qdrant                                                                |
+| **AI & Evaluation Engines** | LangChain, LlamaIndex, LiteLLM, RAGAS, DeepEval                       |
+| **DevOps & Infrastructure** | Docker, GitHub Actions CI/CD                                          |
 
 ---
 
@@ -116,11 +119,11 @@ Recon-OS is built using modern, robust, and scalable technologies:
 
 Recon-OS is designed specifically for technical practitioners and teams building production AI systems:
 
-* **AI / ML Engineers**
-* **Software & Infrastructure Engineers**
-* **Startups & Scale-ups**
-* **Enterprise AI & Research Teams**
-* **Students & Hackathon Builders**
+- **AI / ML Engineers**
+- **Software & Infrastructure Engineers**
+- **Startups & Scale-ups**
+- **Enterprise AI & Research Teams**
+- **Students & Hackathon Builders**
 
 ---
 
@@ -129,6 +132,7 @@ Recon-OS is designed specifically for technical practitioners and teams building
 **Developer Time Savings & Empirical Rigor.**
 
 Instead of managing a fragmented workflow:
+
 ```text
 7 Isolated Tools ──► Manual Testing ──► Excel Spreadsheets ──► Trial & Error Guesswork ──► Silent Regressions
 ```
@@ -142,23 +146,26 @@ Developers adopt Recon-OS to get an **automated, data-backed optimization loop**
 A great product requires an execution-focused distribution strategy. Recon-OS executes distribution across three distinct phases:
 
 ### Phase 1: 0 to 100 Active Users (Foundational Traction)
-* **High-Impact GitHub README:** Clear problem definition, architecture diagrams, and quickstart guides.
-* **Public Engineering Logs:** Weekly technical updates shared on LinkedIn.
-* **Interactive Feature Demos:** Short, focused feature walkthrough videos on X (Twitter) and YouTube.
-* **Community Engagement:** Genuine feedback-seeking in target communities (`r/LocalLLaMA`, `r/LangChain`, `r/MachineLearning`).
-* **Technical Articles:** Deep-dive architectural posts on Dev.to and Hashnode.
-* **Contributor Onboarding:** Tagged `good first issue` tasks to invite open-source contributions.
+
+- **High-Impact GitHub README:** Clear problem definition, architecture diagrams, and quickstart guides.
+- **Public Engineering Logs:** Weekly technical updates shared on LinkedIn.
+- **Interactive Feature Demos:** Short, focused feature walkthrough videos on X (Twitter) and YouTube.
+- **Community Engagement:** Genuine feedback-seeking in target communities (`r/LocalLLaMA`, `r/LangChain`, `r/MachineLearning`).
+- **Technical Articles:** Deep-dive architectural posts on Dev.to and Hashnode.
+- **Contributor Onboarding:** Tagged `good first issue` tasks to invite open-source contributions.
 
 ### Phase 2: 100 to 1,000 Active Users (Ecosystem Integration)
-* **First-Class Integrations:** Official integrations with LangChain, LlamaIndex, and Qdrant.
-* **Conference Demos & Tech Talks:** Presenting benchmarking case studies at developer meetups and AI conferences.
-* **Community Discord:** Dedicated real-time support, feature discussions, and contributor chat.
-* **Documentation Guides:** Production-ready code templates and real-world benchmarking examples.
+
+- **First-Class Integrations:** Official integrations with LangChain, LlamaIndex, and Qdrant.
+- **Conference Demos & Tech Talks:** Presenting benchmarking case studies at developer meetups and AI conferences.
+- **Community Discord:** Dedicated real-time support, feature discussions, and contributor chat.
+- **Documentation Guides:** Production-ready code templates and real-world benchmarking examples.
 
 ### Phase 3: 1,000+ Active Users (Platform Scaling)
-* **Hosted Cloud Platform:** Managed control plane for enterprise teams.
-* **Plugin Ecosystem:** Community-published chunkers, evaluators, and store connectors.
-* **Enterprise Features:** Team collaboration, role-based access control (RBAC), SSO, and audit compliance.
+
+- **Hosted Cloud Platform:** Managed control plane for enterprise teams.
+- **Plugin Ecosystem:** Community-published chunkers, evaluators, and store connectors.
+- **Enterprise Features:** Team collaboration, role-based access control (RBAC), SSO, and audit compliance.
 
 ---
 

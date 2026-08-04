@@ -26,13 +26,13 @@ many years, so the process below optimizes for clarity and reviewability over ra
 
 Use a short `area/description` prefix:
 
-| Prefix | Use |
-| ------ | --- |
-| `foundation/` | Governance, docs, repo hygiene |
-| `docs/` | Documentation changes |
-| `feat/` | New functionality (once modules exist) |
-| `fix/` | Bug fixes |
-| `chore/` | Maintenance with no behavior change |
+| Prefix        | Use                                    |
+| ------------- | -------------------------------------- |
+| `foundation/` | Governance, docs, repo hygiene         |
+| `docs/`       | Documentation changes                  |
+| `feat/`       | New functionality (once modules exist) |
+| `fix/`        | Bug fixes                              |
+| `chore/`      | Maintenance with no behavior change    |
 
 Example: `docs/add-retriever-rationale`.
 
@@ -41,7 +41,7 @@ Example: `docs/add-retriever-rationale`.
 - Use imperative mood in the subject: "add", "fix", "remove", not "added".
 - Keep the subject under 72 characters.
 - Separate subject from body with a blank line.
-- Explain *why* in the body when the reason is not obvious.
+- Explain _why_ in the body when the reason is not obvious.
 - One logical change per commit.
 
 Example:

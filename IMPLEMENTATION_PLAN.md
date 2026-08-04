@@ -40,11 +40,13 @@ Create `docs/VISION.md` structured across 15 core sections:
 ## Verification Plan
 
 ### Automated Tests
+
 - Validate markdown syntax and file boundaries with workspace script:
   ```powershell
   pnpm lint
   ```
 
 ### Manual Verification
+
 - Verify file exists at `c:/Users/hardi/Recon-OS/docs/VISION.md`.
 - Inspect header hierarchy, Mermaid diagram validity, readability, and adherence to senior engineering documentation standards.
