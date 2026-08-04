@@ -1,14 +1,12 @@
 /**
- * Core domain model for Recon-OS.
+ * Core domain model and DTO contracts for Recon-OS.
  *
- * These are the shared contracts used across the platform. They describe the
- * shape of data as it moves through the RAG lifecycle: ingestion, chunking,
- * embedding, retrieval, generation, and evaluation. No behavior is defined
- * here; concrete logic lives in the engine packages introduced in later phases.
+ * These are the shared contracts used across the platform describing the
+ * data structures as they flow through the RAG pipeline stages.
  */
 
-/** A source document normalized into the canonical Recon-OS representation. */
-export interface Document {
+/** A serialized representation of a document for DTO and transport boundaries. */
+export interface DocumentDTO {
   id: string;
   source: string;
   title?: string;
