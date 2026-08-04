@@ -22,6 +22,6 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "echo \"No tests for @recon-os/core yet.\""
+    "test": "pnpm build && node --test tests/dataset.test.ts"
   }
 }
