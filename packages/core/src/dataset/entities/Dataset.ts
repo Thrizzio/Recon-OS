@@ -9,6 +9,7 @@ import { DatasetStatistics } from "../value-objects/DatasetStatistics.js";
 import { Timestamp } from "../value-objects/Timestamp.js";
 import { URI } from "../value-objects/URI.js";
 import { DocumentMetadata } from "../value-objects/DocumentMetadata.js";
+import { DatasetSerializer, DatasetJSON } from "../serialization/DatasetSerializer.js";
 import { InvalidDatasetError } from "../errors/DatasetError.js";
 
 /**
@@ -254,6 +255,16 @@ export class Dataset {
   /** Checks equality against another Dataset entity by ID */
   public equals(other: Dataset): boolean {
     return Boolean(other && this.id.equals(other.id));
+  }
+
+  /** Serializes Dataset entity to plain JSON object */
+  public toJSON(): DatasetJSON {
+    return DatasetSerializer.serialize(this);
+  }
+
+  /** Reconstructs Dataset entity from plain JSON object */
+  public static fromJSON(json: DatasetJSON): Dataset {
+    return DatasetSerializer.deserialize(json);
   }
 
   /** Returns string representation of Dataset entity */
