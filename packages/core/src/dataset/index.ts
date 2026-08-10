@@ -5,5 +5,3 @@ export * from "./interfaces/index.js";
 export * from "./value-objects/index.js";
 export * from "./validation/index.js";
 export * from "./serialization/index.js";
-
-

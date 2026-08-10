@@ -144,7 +144,9 @@ export class DatasetSerializer {
 
     const parseTimestamp = (dateStr: string | undefined, fieldName: string): Timestamp => {
       if (!dateStr || typeof dateStr !== "string") {
-        throw new InvalidDatasetError(`Dataset JSON payload requires valid ISO string for ${fieldName}`);
+        throw new InvalidDatasetError(
+          `Dataset JSON payload requires valid ISO string for ${fieldName}`,
+        );
       }
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) {
@@ -156,9 +158,7 @@ export class DatasetSerializer {
     const createdAt = parseTimestamp(json.createdAt, "createdAt");
     const updatedAt = parseTimestamp(json.updatedAt, "updatedAt");
 
-    const tags = new Set<DatasetTag>(
-      (json.tags ?? []).map((tagStr) => DatasetTag.from(tagStr))
-    );
+    const tags = new Set<DatasetTag>((json.tags ?? []).map((tagStr) => DatasetTag.from(tagStr)));
 
     const metadata = DocumentMetadata.from(json.metadata ?? {});
 
@@ -166,7 +166,7 @@ export class DatasetSerializer {
       ? DatasetStatistics.create(
           json.statistics.documentCount ?? 0,
           json.statistics.totalSizeBytes ?? 0,
-          json.statistics.avgDocumentSizeBytes ?? 0
+          json.statistics.avgDocumentSizeBytes ?? 0,
         )
       : new DatasetStatistics();
 
