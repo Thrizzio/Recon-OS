@@ -30,22 +30,59 @@ export class ValidationResult implements IValidationResult {
     const errorList: string[] = [];
     const warningList: string[] = [];
 
+    // Extract errors and warnings directly from issues
+    for (const issue of this.issues) {
+      if (issue.severity === ValidationSeverity.ERROR) {
+        errorList.push(issue.message);
+      } else if (issue.severity === ValidationSeverity.WARNING) {
+        warningList.push(issue.message);
+      }
+    }
+
     if (errors !== undefined) {
-      errorList.push(...errors);
-    } else {
-      for (const issue of this.issues) {
-        if (issue.severity === ValidationSeverity.ERROR) {
-          errorList.push(issue.message);
+      if (this.issues.length === 0) {
+        errorList.push(...errors);
+      } else {
+        const issueErrorCounts = new Map<string, number>();
+        for (const issue of this.issues) {
+          if (issue.severity === ValidationSeverity.ERROR) {
+            issueErrorCounts.set(issue.message, (issueErrorCounts.get(issue.message) ?? 0) + 1);
+          }
+        }
+        const passedErrorCounts = new Map<string, number>();
+        for (const err of errors) {
+          passedErrorCounts.set(err, (passedErrorCounts.get(err) ?? 0) + 1);
+        }
+        for (const [err, count] of passedErrorCounts.entries()) {
+          const fromIssues = issueErrorCounts.get(err) ?? 0;
+          const extra = count - fromIssues;
+          for (let i = 0; i < extra; i++) {
+            errorList.push(err);
+          }
         }
       }
     }
 
     if (warnings !== undefined) {
-      warningList.push(...warnings);
-    } else {
-      for (const issue of this.issues) {
-        if (issue.severity === ValidationSeverity.WARNING) {
-          warningList.push(issue.message);
+      if (this.issues.length === 0) {
+        warningList.push(...warnings);
+      } else {
+        const issueWarnCounts = new Map<string, number>();
+        for (const issue of this.issues) {
+          if (issue.severity === ValidationSeverity.WARNING) {
+            issueWarnCounts.set(issue.message, (issueWarnCounts.get(issue.message) ?? 0) + 1);
+          }
+        }
+        const passedWarnCounts = new Map<string, number>();
+        for (const warn of warnings) {
+          passedWarnCounts.set(warn, (passedWarnCounts.get(warn) ?? 0) + 1);
+        }
+        for (const [warn, count] of passedWarnCounts.entries()) {
+          const fromIssues = issueWarnCounts.get(warn) ?? 0;
+          const extra = count - fromIssues;
+          for (let i = 0; i < extra; i++) {
+            warningList.push(warn);
+          }
         }
       }
     }
@@ -158,6 +195,7 @@ export class ValidationResult implements IValidationResult {
 
   /**
    * Combines multiple ValidationResults into a single aggregate result.
+   * Independently collects issues, errors, and warnings.
    */
   public static combine(
     ...results: readonly (IValidationResult | null | undefined)[]
@@ -171,16 +209,17 @@ export class ValidationResult implements IValidationResult {
 
       if (res.issues && res.issues.length > 0) {
         combinedIssues.push(...res.issues);
-      } else {
-        if (res.errors) {
-          for (const err of res.errors) {
-            combinedErrors.push(err);
-          }
+      }
+
+      if (res.errors && res.errors.length > 0) {
+        for (const err of res.errors) {
+          combinedErrors.push(err);
         }
-        if (res.warnings) {
-          for (const warn of res.warnings) {
-            combinedWarnings.push(warn);
-          }
+      }
+
+      if (res.warnings && res.warnings.length > 0) {
+        for (const warn of res.warnings) {
+          combinedWarnings.push(warn);
         }
       }
     }

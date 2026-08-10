@@ -191,6 +191,22 @@ export class CompositeDatasetValidator implements DatasetValidator {
     if (typeof outcome === "object" && outcome !== null) {
       if ("isValid" in outcome && "issues" in outcome) {
         const res = outcome as unknown as IValidationResult;
+
+        if (
+          res.isValid === false &&
+          (!res.issues || res.issues.length === 0) &&
+          (!res.errors || res.errors.length === 0)
+        ) {
+          return ValidationResult.failure([
+            {
+              code: "INVALID_RULE_OUTCOME",
+              message:
+                "Custom validation rule returned isValid: false without specifying diagnostic issues.",
+              severity: ValidationSeverity.ERROR,
+            },
+          ]);
+        }
+
         return new ValidationResult(res.issues, res.errors, res.warnings);
       }
 

@@ -89,6 +89,34 @@ test("Regression: ValidationResult.failure() with warning-only issues always pro
   assert.equal(result.issues[0].severity, ValidationSeverity.ERROR);
 });
 
+test("Regression: ValidationResult.combine() preserves errors and warnings alongside issues from plain IValidationResult", () => {
+  const plainResult = {
+    isValid: false,
+    errors: ["External Error String"],
+    warnings: ["External Warning String"],
+    issues: [
+      {
+        code: "WARN_ISSUE",
+        message: "Warning issue msg",
+        severity: ValidationSeverity.WARNING,
+      },
+    ],
+  };
+
+  const combined = ValidationResult.combine(plainResult);
+
+  assert.equal(combined.isValid, false);
+  assert.equal(combined.hasErrors(), true);
+  assert.equal(combined.hasWarnings(), true);
+  assert.equal(combined.errors.length, 1);
+  assert.equal(combined.errors[0], "External Error String");
+  assert.equal(combined.warnings.length, 2);
+  assert.equal(combined.warnings.includes("External Warning String"), true);
+  assert.equal(combined.warnings.includes("Warning issue msg"), true);
+  assert.equal(combined.issues.length, 1);
+  assert.equal(combined.issues[0].code, "WARN_ISSUE");
+});
+
 test("Regression: DatasetValidationError accurately reports total error count with duplicate messages", () => {
   const duplicateErrorsResult = ValidationResult.fromIssues([
     { code: "ERR_CHECKSUM", message: "Checksum mismatch", severity: ValidationSeverity.ERROR },
@@ -441,6 +469,34 @@ test("Regression: Malformed custom validation rule outcomes are cleanly rejected
   assert.equal(result.isValid, false);
   assert.equal(result.hasErrors(), true);
   assert.equal(result.issues[0].code, "INVALID_RULE_OUTCOME");
+});
+
+test("Regression: Custom validation rule returning { isValid: false, issues: [] } produces meaningful diagnostic failure", async () => {
+  const pipeline = new CompositeDatasetValidator("EmptyFailureRulePipeline");
+
+  pipeline.addRule("EmptyFailureRule", () => {
+    return {
+      isValid: false,
+      issues: [],
+    } as unknown as ValidationResult;
+  });
+
+  const dataset = new Dataset({
+    id: DatasetId.from("ds_empty_failure"),
+    name: DatasetName.from("Empty Failure Dataset"),
+    version: Version.from("1.0.0"),
+    source: DatasetSource.from("file", "/empty-fail.json"),
+  });
+
+  const result = await pipeline.validate(dataset);
+  assert.equal(result.isValid, false);
+  assert.equal(result.hasErrors(), true);
+  assert.equal(result.issues.length, 1);
+  assert.equal(result.issues[0].code, "INVALID_RULE_OUTCOME");
+  assert.match(
+    result.issues[0].message,
+    /Custom validation rule returned isValid: false without specifying diagnostic issues/,
+  );
 });
 
 test("CompositeDatasetValidator respects stopOnFirstError execution mode", async () => {
