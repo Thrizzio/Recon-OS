@@ -51,7 +51,32 @@ export class DuplicateDocumentValidator implements DatasetValidator {
         continue;
       }
 
-      const id = doc.getId().getValue();
+      const idObj = doc.getId();
+      if (!idObj || typeof idObj.getValue !== "function") {
+        issues.push({
+          code: "INVALID_DOCUMENT_ID",
+          message: `Document at index ${index} is missing a valid DocumentId value object`,
+          severity: ValidationSeverity.ERROR,
+          field: `documents[${index}].id`,
+          context: { index },
+        });
+        index++;
+        continue;
+      }
+
+      const id = idObj.getValue();
+      if (typeof id !== "string" || id.trim().length === 0) {
+        issues.push({
+          code: "INVALID_DOCUMENT_ID",
+          message: `Document at index ${index} has empty or non-string ID`,
+          severity: ValidationSeverity.ERROR,
+          field: `documents[${index}].id`,
+          context: { index },
+        });
+        index++;
+        continue;
+      }
+
       const firstSeen = seenIds.get(id);
 
       if (firstSeen !== undefined) {

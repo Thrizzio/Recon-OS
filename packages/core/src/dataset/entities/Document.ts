@@ -55,7 +55,7 @@ export class Document {
     this.name = props.name;
     this.type = props.type;
     this.content = props.content;
-    this.size = props.size ?? props.content.length;
+    this.size = props.size ?? Buffer.byteLength(props.content, "utf8");
     this.createdAt = props.createdAt ?? new Timestamp(new Date());
     this.updatedAt = props.updatedAt ?? new Timestamp(new Date());
     this.language = props.language ?? null;
@@ -118,7 +118,7 @@ export class Document {
     return new Document({
       ...this.toProps(),
       content,
-      size: content.length,
+      size: Buffer.byteLength(content, "utf8"),
       updatedAt: new Timestamp(new Date()),
     });
   }

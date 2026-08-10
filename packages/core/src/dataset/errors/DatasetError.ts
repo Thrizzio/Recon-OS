@@ -1,5 +1,9 @@
 import { DomainError } from "./DomainError.js";
-import { ValidationIssue, ValidationResult } from "../interfaces/DatasetValidator.js";
+import {
+  ValidationIssue,
+  ValidationResult,
+  ValidationSeverity,
+} from "../interfaces/DatasetValidator.js";
 
 export class InvalidDatasetError extends DomainError {
   constructor(message: string) {
@@ -34,10 +38,15 @@ export class DatasetValidationError extends DomainError {
     result: ValidationResult,
     customMessage?: string,
   ): DatasetValidationError {
-    const errorCount = result.errors.length;
+    const errorIssues = result.issues.filter((i) => i.severity === ValidationSeverity.ERROR);
+    const errorCount = errorIssues.length > 0 ? errorIssues.length : result.errors.length;
+    const uniqueErrorDetails = Array.from(
+      new Set(result.errors.length > 0 ? result.errors : errorIssues.map((i) => i.message)),
+    );
+    const errorSuffix = uniqueErrorDetails.length > 0 ? `: ${uniqueErrorDetails.join("; ")}` : "";
     const message =
       customMessage ??
-      `Dataset validation failed with ${errorCount} error${errorCount === 1 ? "" : "s"}: ${result.errors.join("; ")}`;
+      `Dataset validation failed with ${errorCount} error${errorCount === 1 ? "" : "s"}${errorSuffix}`;
     return new DatasetValidationError(message, result.errors, result.issues, result);
   }
 }

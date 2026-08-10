@@ -117,7 +117,7 @@ export class DatasetRegistrationSchema {
           : DocumentMetadata.from(input.metadata);
     }
 
-    const tags = new Set<DatasetTag>();
+    const tagMap = new Map<string, DatasetTag>();
     if (input.tags !== undefined && input.tags !== null) {
       const tagItems = Array.isArray(input.tags)
         ? input.tags
@@ -131,9 +131,10 @@ export class DatasetRegistrationSchema {
 
       for (const t of tagItems) {
         if (t instanceof DatasetTag) {
-          tags.add(t);
+          tagMap.set(t.getValue(), t);
         } else if (typeof t === "string") {
-          tags.add(DatasetTag.from(t));
+          const tag = DatasetTag.from(t);
+          tagMap.set(tag.getValue(), tag);
         } else {
           throw new InvalidDatasetError(
             `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`,
@@ -141,6 +142,7 @@ export class DatasetRegistrationSchema {
         }
       }
     }
+    const tags = new Set<DatasetTag>(tagMap.values());
 
     let status: DatasetStatus = DatasetStatus.DRAFT;
     if (input.status !== undefined) {
@@ -240,7 +242,7 @@ export class DatasetUpdateSchema {
     }
 
     if (input.tags !== undefined && input.tags !== null) {
-      const tags = new Set<DatasetTag>();
+      const tagMap = new Map<string, DatasetTag>();
       const tagItems = Array.isArray(input.tags)
         ? input.tags
         : input.tags instanceof Set
@@ -253,16 +255,17 @@ export class DatasetUpdateSchema {
 
       for (const t of tagItems) {
         if (t instanceof DatasetTag) {
-          tags.add(t);
+          tagMap.set(t.getValue(), t);
         } else if (typeof t === "string") {
-          tags.add(DatasetTag.from(t));
+          const tag = DatasetTag.from(t);
+          tagMap.set(tag.getValue(), tag);
         } else {
           throw new InvalidDatasetError(
             `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`,
           );
         }
       }
-      result.tags = tags;
+      result.tags = new Set<DatasetTag>(tagMap.values());
     }
 
     if (Object.keys(result).length === 0) {

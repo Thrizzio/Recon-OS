@@ -1,4 +1,5 @@
 import { Dataset } from "../entities/Dataset.js";
+import { DatasetTag } from "../value-objects/DatasetTag.js";
 import {
   DatasetValidator,
   DatasetValidationContext,
@@ -54,8 +55,8 @@ export class SchemaComplianceValidator implements DatasetValidator {
       return ValidationResult.fromIssues(issues);
     }
 
-    // 1. Mandatory field checks
-    const id = dataset.getId()?.getValue();
+    // 1. Mandatory field checks with defensive access
+    const id = typeof dataset.getId === "function" ? dataset.getId()?.getValue?.() : undefined;
     if (!id || id.trim().length === 0) {
       issues.push({
         code: "MISSING_REQUIRED_FIELD",
@@ -65,7 +66,8 @@ export class SchemaComplianceValidator implements DatasetValidator {
       });
     }
 
-    const name = dataset.getName()?.getValue();
+    const name =
+      typeof dataset.getName === "function" ? dataset.getName()?.getValue?.() : undefined;
     if (!name || name.trim().length === 0) {
       issues.push({
         code: "MISSING_REQUIRED_FIELD",
@@ -75,7 +77,8 @@ export class SchemaComplianceValidator implements DatasetValidator {
       });
     }
 
-    const version = dataset.getVersion()?.getValue();
+    const version =
+      typeof dataset.getVersion === "function" ? dataset.getVersion()?.getValue?.() : undefined;
     if (!version || version.trim().length === 0) {
       issues.push({
         code: "MISSING_REQUIRED_FIELD",
@@ -85,7 +88,10 @@ export class SchemaComplianceValidator implements DatasetValidator {
       });
     }
 
-    const schemaVersion = dataset.getSchemaVersion()?.getValue();
+    const schemaVersion =
+      typeof dataset.getSchemaVersion === "function"
+        ? dataset.getSchemaVersion()?.getValue?.()
+        : undefined;
     if (!schemaVersion || schemaVersion.trim().length === 0) {
       issues.push({
         code: "MISSING_REQUIRED_FIELD",
@@ -95,8 +101,8 @@ export class SchemaComplianceValidator implements DatasetValidator {
       });
     }
 
-    const source = dataset.getSource();
-    if (!source || !source.getType() || !source.getUri()) {
+    const source = typeof dataset.getSource === "function" ? dataset.getSource() : undefined;
+    if (!source || !source.getType?.() || !source.getUri?.()) {
       issues.push({
         code: "MISSING_REQUIRED_FIELD",
         message: "Dataset source specification requires non-empty type and URI",
@@ -106,7 +112,10 @@ export class SchemaComplianceValidator implements DatasetValidator {
     }
 
     // 2. Description bounds check
-    const description = dataset.getDescription()?.getValue();
+    const description =
+      typeof dataset.getDescription === "function"
+        ? dataset.getDescription()?.getValue?.()
+        : undefined;
     const maxDescLen = this.options.maxDescriptionLength ?? 2000;
     if (description && description.length > maxDescLen) {
       issues.push({
@@ -118,28 +127,49 @@ export class SchemaComplianceValidator implements DatasetValidator {
       });
     }
 
-    // 3. Tags count check
-    const tags = dataset.getTags();
+    // 3. Tags count check with string value deduplication and defensive null coalescing
+    const rawTags =
+      typeof dataset.getTags === "function"
+        ? (dataset.getTags() ?? new Set<DatasetTag>())
+        : new Set<DatasetTag>();
+    const tagValues = new Set<string>();
+    for (const t of rawTags) {
+      if (t instanceof DatasetTag) {
+        tagValues.add(t.getValue());
+      } else if (
+        typeof t === "object" &&
+        t !== null &&
+        "getValue" in t &&
+        typeof (t as { getValue: unknown }).getValue === "function"
+      ) {
+        const val = (t as { getValue: () => unknown }).getValue();
+        if (typeof val === "string") {
+          tagValues.add(val);
+        }
+      } else if (typeof t === "string") {
+        tagValues.add(t);
+      }
+    }
     const maxTags = this.options.maxTagsCount ?? 50;
-    if (tags.size > maxTags) {
+    if (tagValues.size > maxTags) {
       issues.push({
         code: "TAG_COUNT_EXCEEDED",
-        message: `Dataset tag count (${tags.size}) exceeds maximum allowable tags of ${maxTags}`,
+        message: `Dataset tag count (${tagValues.size}) exceeds maximum allowable tags of ${maxTags}`,
         severity: ValidationSeverity.WARNING,
         field: "tags",
-        context: { actualCount: tags.size, maxCount: maxTags },
+        context: { actualCount: tagValues.size, maxCount: maxTags },
       });
     }
 
     // 4. Required metadata validation
-    const metadata = dataset.getMetadata();
+    const metadata = typeof dataset.getMetadata === "function" ? dataset.getMetadata() : undefined;
     const requiredKeys = new Set<string>([
       ...(this.options.requiredMetadataKeys ?? []),
       ...(context?.requiredMetadataKeys ?? []),
     ]);
 
     for (const key of requiredKeys) {
-      if (!metadata || !metadata.has(key)) {
+      if (!metadata || typeof metadata.has !== "function" || !metadata.has(key)) {
         issues.push({
           code: "MISSING_REQUIRED_METADATA",
           message: `Required metadata key "${key}" is missing from dataset metadata`,

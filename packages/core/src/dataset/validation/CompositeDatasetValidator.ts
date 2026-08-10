@@ -5,6 +5,7 @@ import {
   ValidationResult as IValidationResult,
   ValidationRule,
   ValidationIssue,
+  ValidationSeverity,
 } from "../interfaces/DatasetValidator.js";
 import { ValidationResult } from "./ValidationResult.js";
 import { DuplicateDocumentValidator } from "./DuplicateDocumentValidator.js";
@@ -142,6 +143,22 @@ export class CompositeDatasetValidator implements DatasetValidator {
     return pipeline;
   }
 
+  private static isValidValidationIssue(item: unknown): item is ValidationIssue {
+    if (typeof item !== "object" || item === null) {
+      return false;
+    }
+    const candidate = item as Record<string, unknown>;
+    const hasValidCode = typeof candidate.code === "string" && candidate.code.trim().length > 0;
+    const hasValidMessage =
+      typeof candidate.message === "string" && candidate.message.trim().length > 0;
+    const hasValidSeverity =
+      candidate.severity === ValidationSeverity.ERROR ||
+      candidate.severity === ValidationSeverity.WARNING ||
+      candidate.severity === ValidationSeverity.INFO;
+
+    return hasValidCode && hasValidMessage && hasValidSeverity;
+  }
+
   private static normalizeRuleOutcome(
     outcome: IValidationResult | readonly ValidationIssue[] | ValidationIssue | null | undefined,
   ): ValidationResult {
@@ -154,7 +171,21 @@ export class CompositeDatasetValidator implements DatasetValidator {
     }
 
     if (Array.isArray(outcome)) {
-      return ValidationResult.fromIssues(outcome);
+      const validatedIssues: ValidationIssue[] = [];
+      for (let i = 0; i < outcome.length; i++) {
+        const item = outcome[i];
+        if (CompositeDatasetValidator.isValidValidationIssue(item)) {
+          validatedIssues.push(item);
+        } else {
+          validatedIssues.push({
+            code: "INVALID_RULE_OUTCOME",
+            message: `Custom validation rule returned a malformed ValidationIssue at index ${i} (missing code, message, or valid severity)`,
+            severity: ValidationSeverity.ERROR,
+            context: { invalidItem: typeof item === "object" ? item : String(item) },
+          });
+        }
+      }
+      return ValidationResult.fromIssues(validatedIssues);
     }
 
     if (typeof outcome === "object" && outcome !== null) {
@@ -162,9 +193,28 @@ export class CompositeDatasetValidator implements DatasetValidator {
         const res = outcome as unknown as IValidationResult;
         return new ValidationResult(res.issues, res.errors, res.warnings);
       }
-      return ValidationResult.fromIssues([outcome as ValidationIssue]);
+
+      if (CompositeDatasetValidator.isValidValidationIssue(outcome)) {
+        return ValidationResult.fromIssues([outcome]);
+      }
+
+      return ValidationResult.failure([
+        {
+          code: "INVALID_RULE_OUTCOME",
+          message:
+            "Custom validation rule returned a malformed outcome object (missing code, message, or valid severity)",
+          severity: ValidationSeverity.ERROR,
+          context: { invalidOutcome: outcome },
+        },
+      ]);
     }
 
-    return ValidationResult.success();
+    return ValidationResult.failure([
+      {
+        code: "INVALID_RULE_OUTCOME",
+        message: `Custom validation rule returned an unsupported return type: ${typeof outcome}`,
+        severity: ValidationSeverity.ERROR,
+      },
+    ]);
   }
 }

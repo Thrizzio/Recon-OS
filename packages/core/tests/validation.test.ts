@@ -21,6 +21,7 @@ import {
   SchemaComplianceValidator,
   CompositeDatasetValidator,
   DatasetValidationError,
+  DatasetRegistrationSchema,
 } from "../dist/index.js";
 
 test("ValidationResult model constructs and merges diagnostics cleanly", () => {
@@ -70,6 +71,39 @@ test("ValidationResult model constructs and merges diagnostics cleanly", () => {
   assert.equal(merged.warnings.length, 2);
 
   assert.throws(() => ValidationResult.failure([]), /requires at least one error/);
+});
+
+test("Regression: ValidationResult.failure() with warning-only issues always produces isValid === false", () => {
+  const warningIssues = [
+    {
+      code: "DEPRECATION_WARNING",
+      message: "This field is deprecated",
+      severity: ValidationSeverity.WARNING,
+    },
+  ];
+
+  const result = ValidationResult.failure(warningIssues);
+  assert.equal(result.isValid, false);
+  assert.equal(result.hasErrors(), true);
+  assert.equal(result.errors.length, 1);
+  assert.equal(result.issues[0].severity, ValidationSeverity.ERROR);
+});
+
+test("Regression: DatasetValidationError accurately reports total error count with duplicate messages", () => {
+  const duplicateErrorsResult = ValidationResult.fromIssues([
+    { code: "ERR_CHECKSUM", message: "Checksum mismatch", severity: ValidationSeverity.ERROR },
+    { code: "ERR_CHECKSUM", message: "Checksum mismatch", severity: ValidationSeverity.ERROR },
+    { code: "ERR_CHECKSUM", message: "Checksum mismatch", severity: ValidationSeverity.ERROR },
+    { code: "ERR_CHECKSUM", message: "Checksum mismatch", severity: ValidationSeverity.ERROR },
+    { code: "ERR_CHECKSUM", message: "Checksum mismatch", severity: ValidationSeverity.ERROR },
+  ]);
+
+  assert.equal(duplicateErrorsResult.errors.length, 5);
+  assert.equal(duplicateErrorsResult.issues.length, 5);
+
+  const error = DatasetValidationError.fromResult(duplicateErrorsResult);
+  assert.match(error.message, /Dataset validation failed with 5 errors: Checksum mismatch/);
+  assert.equal(error.errors.length, 5);
 });
 
 test("DuplicateDocumentValidator detects duplicate IDs in O(N) deterministic time", () => {
@@ -122,6 +156,28 @@ test("DuplicateDocumentValidator detects duplicate IDs in O(N) deterministic tim
   assert.equal(doc3Duplicate.getId().getValue(), "doc_101");
 });
 
+test("Regression: Defensive guards for duck-typed documents where getId() returns null or malformed", () => {
+  const validator = new DuplicateDocumentValidator();
+
+  const malformedDoc1 = {
+    getId: () => null,
+    getContent: () => "Valid content",
+  } as unknown as Document;
+
+  const malformedDoc2 = {
+    getId: () => ({ getValue: () => "" }),
+    getContent: () => "Valid content",
+  } as unknown as Document;
+
+  const res1 = validator.validateDocuments([malformedDoc1]);
+  assert.equal(res1.isValid, false);
+  assert.equal(res1.issues[0].code, "INVALID_DOCUMENT_ID");
+
+  const res2 = validator.validateDocuments([malformedDoc2]);
+  assert.equal(res2.isValid, false);
+  assert.equal(res2.issues[0].code, "INVALID_DOCUMENT_ID");
+});
+
 test("ChecksumValidator verifies cryptographic digests and flags mismatches", () => {
   const validator = new ChecksumValidator();
 
@@ -156,6 +212,42 @@ test("ChecksumValidator verifies cryptographic digests and flags mismatches", ()
   assert.equal(mismatchIssue.code, "CHECKSUM_MISMATCH");
   assert.equal(mismatchIssue.documentId, "doc_chk_2");
   assert.equal(mismatchIssue.context?.actualChecksum, correctHash);
+});
+
+test("Regression: Multi-byte UTF-8 content size check uses Buffer.byteLength without false positives", () => {
+  const validator = new ChecksumValidator({ verifySize: true });
+  const multiByteContent = "Data 🚀 with unicode 🌟 symbols";
+  const utf8ByteLength = Buffer.byteLength(multiByteContent, "utf8");
+
+  // Multi-byte string: content.length (30) !== utf8ByteLength (36)
+  assert.notEqual(multiByteContent.length, utf8ByteLength);
+
+  const multiByteDoc = new Document({
+    id: DocumentId.from("doc_mb_1"),
+    datasetId: DatasetId.from("ds_1"),
+    name: DocumentName.from("multibyte.txt"),
+    type: DocumentType.TEXT,
+    content: multiByteContent,
+    size: utf8ByteLength, // Declared size in bytes
+  });
+
+  const result = validator.validateDocuments([multiByteDoc]);
+  assert.equal(result.isValid, true);
+  assert.equal(result.warnings.length, 0);
+  assert.equal(result.errors.length, 0);
+});
+
+test("Regression: ChecksumValidator handles duck-typed document where getContent() returns non-string", () => {
+  const validator = new ChecksumValidator();
+
+  const malformedDoc = {
+    getId: () => DocumentId.from("doc_bad_content"),
+    getContent: () => 12345, // Invalid non-string
+  } as unknown as Document;
+
+  const result = validator.validateDocuments([malformedDoc]);
+  assert.equal(result.isValid, false);
+  assert.equal(result.issues[0].code, "INVALID_DOCUMENT_CONTENT");
 });
 
 test("ChecksumValidator detects corrupted character encodings and null bytes", () => {
@@ -239,6 +331,34 @@ test("SchemaComplianceValidator enforces dataset schema rules and required metad
   assert.equal(descRes.issues[0].code, "DESCRIPTION_LENGTH_EXCEEDED");
 });
 
+test("Regression: DatasetTag value objects with same string are deduplicated by value and do not trigger TAG_COUNT_EXCEEDED", () => {
+  const validator = new SchemaComplianceValidator({ maxTagsCount: 2 });
+
+  // Multiple distinct object instances representing the same tag string
+  const tag1 = DatasetTag.from("eval");
+  const tag2 = DatasetTag.from("eval");
+  const tag3 = DatasetTag.from("rag");
+
+  const datasetProps = DatasetRegistrationSchema.validate({
+    id: "ds_tags_test",
+    name: "Tag Test",
+    version: "1.0.0",
+    source: { type: "file", uri: "/test.json" },
+    tags: [tag1, tag2, tag3], // 2 duplicate instances of 'eval'
+  });
+
+  const dataset = new Dataset(datasetProps);
+  assert.equal(dataset.getTags().size, 2); // Correctly deduplicated
+
+  const result = validator.validate(dataset);
+  assert.equal(result.isValid, true);
+  assert.equal(result.warnings.length, 0);
+  assert.equal(
+    result.issues.some((i) => i.code === "TAG_COUNT_EXCEEDED"),
+    false,
+  );
+});
+
 test("CompositeDatasetValidator aggregates standard rules and extensible custom hooks", async () => {
   const pipeline = CompositeDatasetValidator.createStandard({
     schemaOptions: { requiredMetadataKeys: ["license"] },
@@ -300,6 +420,27 @@ test("CompositeDatasetValidator aggregates standard rules and extensible custom 
     customFailResult.issues.some((i) => i.code === "CONFIDENTIAL_CONTENT_FORBIDDEN"),
     true,
   );
+});
+
+test("Regression: Malformed custom validation rule outcomes are cleanly rejected and produce isValid === false", async () => {
+  const pipeline = new CompositeDatasetValidator("CustomMalformedPipeline");
+
+  // Rule returning an invalid non-ValidationIssue object
+  pipeline.addRule("MalformedRule", () => {
+    return { customError: true } as unknown as ValidationResult;
+  });
+
+  const dataset = new Dataset({
+    id: DatasetId.from("ds_malformed"),
+    name: DatasetName.from("Malformed Rule Dataset"),
+    version: Version.from("1.0.0"),
+    source: DatasetSource.from("file", "/test"),
+  });
+
+  const result = await pipeline.validate(dataset);
+  assert.equal(result.isValid, false);
+  assert.equal(result.hasErrors(), true);
+  assert.equal(result.issues[0].code, "INVALID_RULE_OUTCOME");
 });
 
 test("CompositeDatasetValidator respects stopOnFirstError execution mode", async () => {

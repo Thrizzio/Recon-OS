@@ -17,7 +17,7 @@ export interface ChecksumValidatorOptions {
   readonly verifyFingerprints?: boolean;
   /** Check for corrupted character encodings like replacement character \uFFFD or null bytes (default: true) */
   readonly verifyEncoding?: boolean;
-  /** Verify document size matches content length (default: true) */
+  /** Verify document size matches content UTF-8 byte length (default: true) */
   readonly verifySize?: boolean;
 }
 
@@ -72,22 +72,42 @@ export class ChecksumValidator implements DatasetValidator {
         continue;
       }
 
-      const docId = doc.getId().getValue();
-      const content = doc.getContent();
+      const rawContent = doc.getContent();
+      if (typeof rawContent !== "string") {
+        issues.push({
+          code: "INVALID_DOCUMENT_CONTENT",
+          message: `Document content at index ${index} must be a string, received ${typeof rawContent}`,
+          severity: ValidationSeverity.ERROR,
+          field: `documents[${index}].content`,
+          context: { index },
+        });
+        index++;
+        continue;
+      }
 
-      // 1. Content size validation
-      if (this.options.verifySize) {
+      const content = rawContent;
+      const docId =
+        typeof doc.getId === "function" &&
+        doc.getId() &&
+        typeof doc.getId()?.getValue === "function"
+          ? (doc.getId()?.getValue() ?? `doc_at_index_${index}`)
+          : `doc_at_index_${index}`;
+
+      // 1. Content size validation using UTF-8 byte length
+      if (this.options.verifySize && typeof doc.getSize === "function") {
         const declaredSize = doc.getSize();
-        const actualLength = content.length;
-        if (declaredSize !== actualLength) {
-          issues.push({
-            code: "DOCUMENT_SIZE_MISMATCH",
-            message: `Document "${docId}" declared size ${declaredSize} does not match content length ${actualLength}`,
-            severity: ValidationSeverity.WARNING,
-            field: `documents[${index}].size`,
-            documentId: docId,
-            context: { declaredSize, actualLength, index },
-          });
+        if (typeof declaredSize === "number") {
+          const actualByteLength = Buffer.byteLength(content, "utf8");
+          if (declaredSize !== actualByteLength) {
+            issues.push({
+              code: "DOCUMENT_SIZE_MISMATCH",
+              message: `Document "${docId}" declared size ${declaredSize} does not match content byte length ${actualByteLength}`,
+              severity: ValidationSeverity.WARNING,
+              field: `documents[${index}].size`,
+              documentId: docId,
+              context: { declaredSize, actualByteLength, index },
+            });
+          }
         }
       }
 
@@ -123,39 +143,47 @@ export class ChecksumValidator implements DatasetValidator {
       }
 
       // 3. Cryptographic fingerprint / checksum verification
-      if (this.options.verifyFingerprints) {
+      if (this.options.verifyFingerprints && typeof doc.getFingerprint === "function") {
         const fingerprint = doc.getFingerprint();
-        if (fingerprint) {
-          const algorithm = fingerprint.getAlgorithm().toLowerCase();
-          const expectedChecksum = fingerprint.getChecksum().toLowerCase();
+        if (
+          fingerprint &&
+          typeof fingerprint.getAlgorithm === "function" &&
+          typeof fingerprint.getChecksum === "function"
+        ) {
+          const rawAlgorithm = fingerprint.getAlgorithm();
+          const rawChecksum = fingerprint.getChecksum();
+          const algorithm = typeof rawAlgorithm === "string" ? rawAlgorithm.toLowerCase() : "";
+          const expectedChecksum = typeof rawChecksum === "string" ? rawChecksum.toLowerCase() : "";
 
-          try {
-            const actualChecksum = ChecksumValidator.computeHash(content, algorithm);
-            if (actualChecksum !== expectedChecksum) {
+          if (algorithm && expectedChecksum) {
+            try {
+              const actualChecksum = ChecksumValidator.computeHash(content, algorithm);
+              if (actualChecksum !== expectedChecksum) {
+                issues.push({
+                  code: "CHECKSUM_MISMATCH",
+                  message: `Checksum mismatch for document "${docId}". Expected ${expectedChecksum}, calculated ${actualChecksum} (${fingerprint.getAlgorithm()})`,
+                  severity: ValidationSeverity.ERROR,
+                  field: `documents[${index}].fingerprint`,
+                  documentId: docId,
+                  context: {
+                    expectedChecksum,
+                    actualChecksum,
+                    algorithm: fingerprint.getAlgorithm(),
+                    index,
+                  },
+                });
+              }
+            } catch (err: unknown) {
+              const errMessage = err instanceof Error ? err.message : String(err);
               issues.push({
-                code: "CHECKSUM_MISMATCH",
-                message: `Checksum mismatch for document "${docId}". Expected ${expectedChecksum}, calculated ${actualChecksum} (${fingerprint.getAlgorithm()})`,
+                code: "UNSUPPORTED_HASH_ALGORITHM",
+                message: `Failed to verify checksum with algorithm "${fingerprint.getAlgorithm()}": ${errMessage}`,
                 severity: ValidationSeverity.ERROR,
-                field: `documents[${index}].fingerprint`,
+                field: `documents[${index}].fingerprint.algorithm`,
                 documentId: docId,
-                context: {
-                  expectedChecksum,
-                  actualChecksum,
-                  algorithm: fingerprint.getAlgorithm(),
-                  index,
-                },
+                context: { algorithm: fingerprint.getAlgorithm(), index },
               });
             }
-          } catch (err: unknown) {
-            const errMessage = err instanceof Error ? err.message : String(err);
-            issues.push({
-              code: "UNSUPPORTED_HASH_ALGORITHM",
-              message: `Failed to verify checksum with algorithm "${fingerprint.getAlgorithm()}": ${errMessage}`,
-              severity: ValidationSeverity.ERROR,
-              field: `documents[${index}].fingerprint.algorithm`,
-              documentId: docId,
-              context: { algorithm: fingerprint.getAlgorithm(), index },
-            });
           }
         }
       }

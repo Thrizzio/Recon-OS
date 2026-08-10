@@ -30,41 +30,37 @@ export class ValidationResult implements IValidationResult {
     const errorList: string[] = [];
     const warningList: string[] = [];
 
-    // Extract errors and warnings from issues if not explicitly supplied
-    for (const issue of this.issues) {
-      if (issue.severity === ValidationSeverity.ERROR) {
-        errorList.push(issue.message);
-      } else if (issue.severity === ValidationSeverity.WARNING) {
-        warningList.push(issue.message);
-      }
-    }
-
-    if (errors) {
-      for (const err of errors) {
-        if (!errorList.includes(err)) {
-          errorList.push(err);
+    if (errors !== undefined) {
+      errorList.push(...errors);
+    } else {
+      for (const issue of this.issues) {
+        if (issue.severity === ValidationSeverity.ERROR) {
+          errorList.push(issue.message);
         }
       }
     }
 
-    if (warnings) {
-      for (const warn of warnings) {
-        if (!warningList.includes(warn)) {
-          warningList.push(warn);
+    if (warnings !== undefined) {
+      warningList.push(...warnings);
+    } else {
+      for (const issue of this.issues) {
+        if (issue.severity === ValidationSeverity.WARNING) {
+          warningList.push(issue.message);
         }
       }
     }
 
     this.errors = Object.freeze(errorList);
     this.warnings = Object.freeze(warningList);
-    this.isValid = this.errors.length === 0;
+    this.isValid =
+      this.errors.length === 0 && !this.issues.some((i) => i.severity === ValidationSeverity.ERROR);
   }
 
   /**
    * Returns true if there are any error-level validation issues.
    */
   public hasErrors(): boolean {
-    return this.errors.length > 0;
+    return this.errors.length > 0 || !this.isValid;
   }
 
   /**
@@ -117,6 +113,7 @@ export class ValidationResult implements IValidationResult {
 
   /**
    * Creates a failed ValidationResult from issues or error messages.
+   * Guarantees isValid === false under all circumstances.
    */
   public static failure(
     issuesOrErrors: readonly ValidationIssue[] | readonly string[],
@@ -137,8 +134,19 @@ export class ValidationResult implements IValidationResult {
       return new ValidationResult(issues, errorStrings, warnings);
     }
 
-    const issues = issuesOrErrors as readonly ValidationIssue[];
-    return new ValidationResult(issues, undefined, warnings);
+    const rawIssues = issuesOrErrors as readonly ValidationIssue[];
+    const hasErrorSeverity = rawIssues.some((i) => i.severity === ValidationSeverity.ERROR);
+    let finalIssues: readonly ValidationIssue[] = rawIssues;
+
+    // Escalate warning/info issues to ERROR if failure() was explicitly invoked without ERROR severity
+    if (!hasErrorSeverity) {
+      finalIssues = rawIssues.map((issue) => ({
+        ...issue,
+        severity: ValidationSeverity.ERROR,
+      }));
+    }
+
+    return new ValidationResult(finalIssues, undefined, warnings);
   }
 
   /**
@@ -161,26 +169,27 @@ export class ValidationResult implements IValidationResult {
     for (const res of results) {
       if (!res) continue;
 
-      if (res.issues) {
+      if (res.issues && res.issues.length > 0) {
         combinedIssues.push(...res.issues);
-      }
-      if (res.errors) {
-        for (const err of res.errors) {
-          if (!combinedErrors.includes(err)) {
+      } else {
+        if (res.errors) {
+          for (const err of res.errors) {
             combinedErrors.push(err);
           }
         }
-      }
-      if (res.warnings) {
-        for (const warn of res.warnings) {
-          if (!combinedWarnings.includes(warn)) {
+        if (res.warnings) {
+          for (const warn of res.warnings) {
             combinedWarnings.push(warn);
           }
         }
       }
     }
 
-    return new ValidationResult(combinedIssues, combinedErrors, combinedWarnings);
+    return new ValidationResult(
+      combinedIssues,
+      combinedErrors.length > 0 ? combinedErrors : undefined,
+      combinedWarnings.length > 0 ? combinedWarnings : undefined,
+    );
   }
 
   /**
