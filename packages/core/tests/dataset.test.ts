@@ -167,7 +167,10 @@ test("Dataset entity handles schemaVersion, storagePath, and metadata immutabili
   const newStorage = URI.from("s3://recon-os-bucket/datasets/ds_200_v2/");
   const updatedStorageDs = dataset.withStoragePath(newStorage);
   assert.equal(dataset.getStoragePath()?.getValue(), "s3://recon-os-bucket/datasets/ds_200/");
-  assert.equal(updatedStorageDs.getStoragePath()?.getValue(), "s3://recon-os-bucket/datasets/ds_200_v2/");
+  assert.equal(
+    updatedStorageDs.getStoragePath()?.getValue(),
+    "s3://recon-os-bucket/datasets/ds_200_v2/",
+  );
 
   const newMeta = meta.set("env", "production");
   const updatedMetaDs = dataset.withMetadata(newMeta);
@@ -197,20 +200,45 @@ test("DatasetRegistrationSchema validates raw payloads and rejects invalid input
 
   // Invalid payload checks
   assert.throws(
-    () => DatasetRegistrationSchema.validate({ id: "", name: "Test", version: "1.0.0", source: { type: "file", uri: "/test" } }),
-    InvalidDatasetError
+    () =>
+      DatasetRegistrationSchema.validate({
+        id: "",
+        name: "Test",
+        version: "1.0.0",
+        source: { type: "file", uri: "/test" },
+      }),
+    InvalidDatasetError,
   );
   assert.throws(
-    () => DatasetRegistrationSchema.validate({ id: "ds_1", name: "Test", version: "invalid_ver", source: { type: "file", uri: "/test" } }),
-    InvalidDatasetError
+    () =>
+      DatasetRegistrationSchema.validate({
+        id: "ds_1",
+        name: "Test",
+        version: "invalid_ver",
+        source: { type: "file", uri: "/test" },
+      }),
+    InvalidDatasetError,
   );
   assert.throws(
-    () => DatasetRegistrationSchema.validate({ id: "ds_1", name: "Test", version: "1.0.0", source: null as unknown as { type: string; uri: string } }),
-    InvalidDatasetError
+    () =>
+      DatasetRegistrationSchema.validate({
+        id: "ds_1",
+        name: "Test",
+        version: "1.0.0",
+        source: null as unknown as { type: string; uri: string },
+      }),
+    InvalidDatasetError,
   );
   assert.throws(
-    () => DatasetRegistrationSchema.validate({ id: "ds_1", name: "Test", version: "1.0.0", source: { type: "file", uri: "/test" }, tags: [123 as unknown as string] }),
-    InvalidDatasetError
+    () =>
+      DatasetRegistrationSchema.validate({
+        id: "ds_1",
+        name: "Test",
+        version: "1.0.0",
+        source: { type: "file", uri: "/test" },
+        tags: [123 as unknown as string],
+      }),
+    InvalidDatasetError,
   );
 });
 
@@ -230,13 +258,13 @@ test("DatasetUpdateSchema validates update payloads and rejects empty/invalid pa
   // Invalid status in update payload should throw
   assert.throws(
     () => DatasetUpdateSchema.validate({ status: "NON_EXISTENT" as unknown as DatasetStatus }),
-    InvalidDatasetError
+    InvalidDatasetError,
   );
 
   // Invalid tag element type in update payload should throw
   assert.throws(
     () => DatasetUpdateSchema.validate({ tags: [true as unknown as string] }),
-    InvalidDatasetError
+    InvalidDatasetError,
   );
 });
 
@@ -269,7 +297,10 @@ test("DatasetSerializer handles round-trip serialization and deserialization cle
   assert.ok(original.equals(deserialized));
   assert.equal(deserialized.getName().getValue(), "Benchmark Dataset");
   assert.equal(deserialized.getVersion().getValue(), "3.1.0");
-  assert.equal(deserialized.getStoragePath()?.getValue(), "https://storage.example.com/datasets/400");
+  assert.equal(
+    deserialized.getStoragePath()?.getValue(),
+    "https://storage.example.com/datasets/400",
+  );
   assert.equal(deserialized.getMetadata().get<string>("creator"), "Recon-OS");
   assert.equal(deserialized.getStatistics().getDocumentCount(), 100);
 });
@@ -285,13 +316,13 @@ test("DatasetSerializer validates DatasetStatus and timestamps during deserializ
   // Invalid status deserialization check
   assert.throws(
     () => Dataset.fromJSON({ ...validJson, status: "INVALID_STATUS" }),
-    InvalidDatasetError
+    InvalidDatasetError,
   );
 
   // Invalid createdAt timestamp deserialization check
   assert.throws(
     () => Dataset.fromJSON({ ...validJson, createdAt: "invalid-date-string" }),
-    InvalidDatasetError
+    InvalidDatasetError,
   );
 });
 
@@ -339,4 +370,3 @@ test("DatasetCollection aggregates dataset IDs cleanly", () => {
   const removedCollection = updatedCollection.removeDatasetId(dsId);
   assert.equal(removedCollection.getDatasetIds().size, 0);
 });
-

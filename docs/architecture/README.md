@@ -15,6 +15,7 @@ stable overview; specifics live here.
 | Document                      | Status  | Description                                           |
 | ----------------------------- | ------- | ----------------------------------------------------- |
 | `ARCHITECTURE.md` (repo root) | Current | System-wide overview and data flow.                   |
+| `dataset-validation-spec.md`  | Current | Dataset validation framework contracts and rules.     |
 | Module specs                  | Planned | One document per engine once specified.               |
 | ADRs                          | Planned | Architecture Decision Records for notable trade-offs. |
 

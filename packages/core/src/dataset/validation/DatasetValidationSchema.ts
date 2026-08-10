@@ -74,14 +74,11 @@ export class DatasetRegistrationSchema {
       throw new InvalidDatasetError("Dataset registration input must be a non-null object");
     }
 
-    const id =
-      input.id instanceof DatasetId ? input.id : DatasetId.from(input.id);
+    const id = input.id instanceof DatasetId ? input.id : DatasetId.from(input.id);
 
-    const name =
-      input.name instanceof DatasetName ? input.name : DatasetName.from(input.name);
+    const name = input.name instanceof DatasetName ? input.name : DatasetName.from(input.name);
 
-    const version =
-      input.version instanceof Version ? input.version : Version.from(input.version);
+    const version = input.version instanceof Version ? input.version : Version.from(input.version);
 
     const schemaVersion = input.schemaVersion
       ? input.schemaVersion instanceof Version
@@ -101,9 +98,7 @@ export class DatasetRegistrationSchema {
     let storagePath: URI | null = null;
     if (input.storagePath) {
       storagePath =
-        input.storagePath instanceof URI
-          ? input.storagePath
-          : URI.from(input.storagePath);
+        input.storagePath instanceof URI ? input.storagePath : URI.from(input.storagePath);
     }
 
     let description: DatasetDescription | null = null;
@@ -141,7 +136,7 @@ export class DatasetRegistrationSchema {
           tags.add(DatasetTag.from(t));
         } else {
           throw new InvalidDatasetError(
-            `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`
+            `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`,
           );
         }
       }
@@ -187,8 +182,7 @@ export class DatasetUpdateSchema {
     const result: Partial<DatasetProps> = {};
 
     if (input.name !== undefined) {
-      result.name =
-        input.name instanceof DatasetName ? input.name : DatasetName.from(input.name);
+      result.name = input.name instanceof DatasetName ? input.name : DatasetName.from(input.name);
     }
 
     if (input.version !== undefined) {
@@ -264,7 +258,7 @@ export class DatasetUpdateSchema {
           tags.add(DatasetTag.from(t));
         } else {
           throw new InvalidDatasetError(
-            `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`
+            `Dataset tag must be a DatasetTag instance or a non-empty string, received ${typeof t}`,
           );
         }
       }
