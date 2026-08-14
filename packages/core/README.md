@@ -1,31 +1,71 @@
 # @recon-os/core
 
-Shared domain types, interfaces, and primitives for Recon-OS. Every other package
-that models RAG concepts depends on this one for its vocabulary.
+Domain models, interfaces, and primitives for the Recon-OS retrieval-augmented generation platform.
 
-- **Purpose:** Define the common data contracts of the platform (documents, chunks,
-  embeddings, retrieval, generation, evaluation, experiments).
-- **Audience:** Authors of engine and application packages.
-- **When to update:** When the platform's domain model changes.
-- **Expansion:** New domain types are added here as modules are specified.
+## What this package provides
 
-## Scope
+- **Domain entities** — `Document`, `Dataset`
+- **Value objects** — `DocumentId`, `DatasetId`, `DocumentFingerprint`, `MimeType`, `DatasetSource`, `URI`, and more
+- **Interfaces** — `DatasetLoader`, `FileLoader`, `SourceResolver`, `MetadataExtractor`, `DatasetValidator`, `DatasetProcessor`
+- **Source resolution** — `LocalFileSourceResolver` resolves local filesystem paths into validated `ResolvedSource` descriptors
+- **File loading** — `LocalFileLoader` loads UTF-8 text, Markdown, and JSON files into `Document` entities
+- **Validation** — `DuplicateDocumentValidator`, `ContentSizeValidator`, `EncodingValidator`, and more
+- **Errors** — `DomainError`, `UnsupportedSourceError`, `InvalidDocumentError`, `InvalidDatasetError`
 
-This package is types and interfaces only. It contains no runtime logic, no I/O, and
-no provider integrations. That keeps it cheap to depend on and safe to import anywhere.
+## Supported file types
 
-## Public surface
-
-- `src/types.ts` — the domain model (`Document`, `Chunk`, `Embedding`,
-  `RetrievalQuery`, `RetrievalResult`, `GenerationRequest`, `GenerationResponse`,
-  `EvaluationMetric`, `Experiment`).
-- `src/index.ts` — re-exports the domain model.
+| Extension | `DocumentType` | MIME type |
+|-----------|----------------|-----------|
+| `.txt` | `TEXT` | `text/plain` |
+| `.md`, `.markdown` | `MARKDOWN` | `text/markdown` |
+| `.json` | `JSON` | `application/json` |
 
 ## Usage
 
 ```ts
-import type { Document, Chunk } from "@recon-os/core";
+import {
+  LocalFileLoader,
+  DatasetSource,
+  DatasetId,
+  UnsupportedSourceError,
+  InvalidDocumentError,
+} from "@recon-os/core";
+
+const loader = new LocalFileLoader();
+const source = DatasetSource.from("file", "/path/to/notes.md");
+const datasetId = DatasetId.from("ds_papers_001");
+
+try {
+  const doc = await loader.load(source, datasetId);
+
+  console.log(doc.getId().getValue());             // sha256 hex of content bytes
+  console.log(doc.getName().getValue());           // "notes.md"
+  console.log(doc.getContent());                   // raw UTF-8 string
+  console.log(doc.getFingerprint().getChecksum()); // sha256 hex (same as id)
+  console.log(doc.getMetadata().getValue());       // { filename, extension, mimeType, ... }
+} catch (err) {
+  if (err instanceof UnsupportedSourceError) {
+    // source type not "file", extension not supported, path missing/is directory
+  }
+  if (err instanceof InvalidDocumentError) {
+    // file contains invalid UTF-8 byte sequences
+  }
+}
 ```
 
-The build emits declarations to `dist/`; the source under `src/` is the single source
-of truth.
+### `DocumentId` semantics
+
+`DocumentId` is the SHA-256 hex digest of the raw file bytes. This is **content-addressed identity**: the same bytes always produce the same `DocumentId`, and editing a file produces a new `DocumentId`. This is intentional — Recon-OS `Document` entities are immutable; versioning is represented by producing new entities.
+
+### Custom loaders
+
+To add support for additional file types, extend `BaseFileLoader` (internal) or implement `FileLoader` directly. Use `LocalFileSourceResolver` or implement `SourceResolver` for custom source types (HTTP, S3, etc.).
+
+## Scripts
+
+```sh
+pnpm build        # compile TypeScript to dist/
+pnpm typecheck    # type-check without emitting
+pnpm lint         # ESLint
+pnpm test         # build + run all tests
+```
