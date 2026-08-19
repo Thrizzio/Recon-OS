@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { extname, basename } from "node:path";
 import { createHash } from "node:crypto";
 import { DatasetId } from "../value-objects/DatasetId.js";
@@ -14,61 +14,91 @@ import { InvalidDocumentError, UnsupportedSourceError } from "../errors/DatasetE
 import { SourceResolver } from "../interfaces/SourceResolver.js";
 import { FileLoader } from "../interfaces/FileLoader.js";
 
+/** Default maximum file size: 10 MiB. */
+const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
 /**
  * Abstract base class for file-based {@link FileLoader} implementations.
  *
  * Encapsulates the shared pipeline common to all local file loaders:
- * reading raw bytes, computing a content fingerprint, strict UTF-8 decoding,
- * metadata extraction, and constructing a validated {@link Document} entity.
+ * source resolution, optional file-size guard, reading raw bytes, computing a
+ * content fingerprint, strict UTF-8 decoding, metadata extraction, and
+ * constructing a validated {@link Document} entity.
  *
- * Subclasses declare which file extensions they support and how to derive
- * {@link MimeType} and {@link DocumentType} from an extension, but do **not**
- * perform format-specific content parsing at this level.
+ * **Pipeline order:**
+ * 1. Resolve the source to a {@link ResolvedSource} (absolute path + file URI).
+ * 2. Derive the file extension from `resolved.pathOrLocation` — a clean,
+ *    absolute filesystem path with no query strings or fragments.
+ * 3. Validate that the extension is supported.
+ * 4. Guard against oversized files by checking `stat().size` before `readFile()`.
+ * 5. Read raw bytes and compute SHA-256 fingerprint.
+ * 6. Determine MIME type: prefer `resolved.mediaType` when provided by the
+ *    resolver; otherwise fall back to the subclass extension mapping.
+ * 7. Strict UTF-8 decode and construct the `Document` entity.
  *
- * Dependency: receives a {@link SourceResolver} via constructor injection.
- * `BaseFileLoader` is unaware of whether the resolver targets a local file,
- * an HTTP URL, or any other source — that is the resolver's responsibility.
- *
- * @remarks
  * **Memory model:** `Document.content` is a `string`, so the full file content
  * must reside in memory before a `Document` can be constructed. This class
- * reads the file once into a `Buffer`, derives the fingerprint from the raw
- * bytes, then decodes to a `string`. No unnecessary duplicate buffers are kept.
+ * therefore enforces a configurable `maxFileSizeBytes` limit (default 10 MiB):
+ * files exceeding the limit are rejected before any buffer allocation, preventing
+ * unbounded memory usage while preserving the existing domain contract.
  *
  * **DocumentId:** Derived from the SHA-256 hex digest of the raw file bytes.
  * This makes identity a deterministic function of content — same bytes produce
- * the same `DocumentId`, which is consistent with the existing repository's
- * immutable, content-addressed document semantics.
+ * the same `DocumentId`, consistent with the repository's immutable,
+ * content-addressed document semantics.
+ *
+ * Dependency: receives a {@link SourceResolver} via constructor injection.
  */
 export abstract class BaseFileLoader implements FileLoader {
-    constructor(protected readonly resolver: SourceResolver) { }
+    private readonly maxFileSizeBytes: number;
+
+    constructor(
+        protected readonly resolver: SourceResolver,
+        { maxFileSizeBytes = DEFAULT_MAX_FILE_SIZE_BYTES }: { maxFileSizeBytes?: number } = {},
+    ) {
+        this.maxFileSizeBytes = maxFileSizeBytes;
+    }
 
     /**
      * Loads a single document from the given source.
      *
+     * Resolution happens first; the file extension is extracted from the resolved
+     * absolute path (`resolved.pathOrLocation`), not from the raw source URI.
+     *
      * @param source - A `DatasetSource` identifying the file to load.
      * @param datasetId - The dataset this document belongs to.
      * @returns A validated {@link Document} entity.
-     * @throws {UnsupportedSourceError} if the extension is not supported or the
-     *   source cannot be resolved.
+     * @throws {UnsupportedSourceError} if the extension is not supported, the
+     *   source cannot be resolved, or the file exceeds `maxFileSizeBytes`.
      * @throws {InvalidDocumentError} if the file content is not valid UTF-8 or
      *   the document fails domain validation.
      */
     public async load(source: DatasetSource, datasetId: DatasetId): Promise<Document> {
-        const ext = this.extractExtension(source.getUri());
-        this.assertSupportedExtension(ext, source.getUri());
-
+        // Resolution first — extension is derived from the resolved path, so
+        // query strings or fragments on the original source cannot corrupt it.
         const resolved = await this.resolver.resolve(source);
+
+        const ext = this.extractExtension(resolved.pathOrLocation);
+        this.assertSupportedExtension(ext, resolved.pathOrLocation);
+
+        // Guard against unbounded memory usage before any buffer allocation.
+        await this.assertFileSizeWithinLimit(resolved.pathOrLocation);
+
         const rawBuffer = await readFile(resolved.pathOrLocation);
 
-        // Compute fingerprint from the original bytes — before any string conversion
+        // Compute fingerprint from the original bytes — before any string conversion.
         const sha256hex = createHash("sha256").update(rawBuffer).digest("hex");
         const fingerprint = DocumentFingerprint.from(sha256hex, "SHA-256");
 
-        // Strict UTF-8 decode — fatal: true throws TypeError on invalid sequences
+        // Strict UTF-8 decode — fatal: true throws TypeError on invalid sequences.
         const content = this.decodeUtf8(rawBuffer, resolved.pathOrLocation);
 
-        const mime = this.getMimeType(ext);
+        // Prefer the MIME type provided by the resolver (which may have obtained
+        // it via Content-Type headers, OS mime-db, etc.); fall back to the
+        // subclass's static extension mapping when the resolver did not supply one.
+        const mimeValue = resolved.mediaType ?? this.getMimeType(ext).getValue();
+        const mime = MimeType.from(mimeValue);
+
         const docType = this.getDocumentType(ext);
         const filename = basename(resolved.pathOrLocation);
         const sizeBytes = rawBuffer.byteLength;
@@ -82,7 +112,7 @@ export abstract class BaseFileLoader implements FileLoader {
             sizeBytes,
         });
 
-        // DocumentId = SHA-256 hex of raw bytes: deterministic content-addressed identity
+        // DocumentId = SHA-256 hex of raw bytes: deterministic content-addressed identity.
         const id = DocumentId.from(sha256hex);
         const name = DocumentName.from(filename);
 
@@ -106,8 +136,10 @@ export abstract class BaseFileLoader implements FileLoader {
     /**
      * Maps a supported lowercase extension to its {@link MimeType}.
      *
-     * @param ext - Lowercase extension without leading dot, guaranteed to be in
-     *   {@link getSupportedExtensions}.
+     * Only called when `resolved.mediaType` is absent. The extension is
+     * guaranteed to be in {@link getSupportedExtensions} at call time.
+     *
+     * @param ext - Lowercase extension without leading dot.
      */
     protected abstract getMimeType(ext: string): MimeType;
 
@@ -120,10 +152,12 @@ export abstract class BaseFileLoader implements FileLoader {
     protected abstract getDocumentType(ext: string): DocumentType;
 
     /**
-     * Extracts the lowercase extension (without leading dot) from a path or URI.
+     * Extracts the lowercase extension (without leading dot) from an absolute
+     * filesystem path. Because `pathOrLocation` is always a clean absolute path
+     * produced by the resolver, there are no query strings or fragments to strip.
      */
-    private extractExtension(uriOrPath: string): string {
-        return extname(basename(uriOrPath)).replace(/^\./, "").toLowerCase();
+    private extractExtension(absolutePath: string): string {
+        return extname(basename(absolutePath)).replace(/^\./, "").toLowerCase();
     }
 
     /**
@@ -131,14 +165,35 @@ export abstract class BaseFileLoader implements FileLoader {
      *
      * @throws {UnsupportedSourceError} if extension is empty or not supported.
      */
-    private assertSupportedExtension(ext: string, uriOrPath: string): void {
+    private assertSupportedExtension(ext: string, absolutePath: string): void {
         if (!ext || !this.getSupportedExtensions().has(ext)) {
             const supported = Array.from(this.getSupportedExtensions())
                 .map((e) => `.${e}`)
                 .join(", ");
             throw new UnsupportedSourceError(
-                `Unsupported file extension "${ext ? `.${ext}` : "(none)"}" for source "${uriOrPath}". ` +
+                `Unsupported file extension "${ext ? `.${ext}` : "(none)"}" for source "${absolutePath}". ` +
                 `Supported extensions: ${supported}`,
+            );
+        }
+    }
+
+    /**
+     * Checks the file size against `maxFileSizeBytes` before allocation.
+     *
+     * This prevents unbounded memory growth when unexpectedly large files are
+     * supplied. The guard uses a separate `stat()` call so that the rejection
+     * happens before any buffer is allocated by `readFile()`.
+     *
+     * @throws {UnsupportedSourceError} if the file exceeds the configured limit.
+     */
+    private async assertFileSizeWithinLimit(absolutePath: string): Promise<void> {
+        const stats = await stat(absolutePath);
+        if (stats.size > this.maxFileSizeBytes) {
+            const limitMiB = (this.maxFileSizeBytes / (1024 * 1024)).toFixed(1);
+            const actualMiB = (stats.size / (1024 * 1024)).toFixed(1);
+            throw new UnsupportedSourceError(
+                `File "${absolutePath}" is too large to load (${actualMiB} MiB). ` +
+                `Maximum allowed size is ${limitMiB} MiB.`,
             );
         }
     }

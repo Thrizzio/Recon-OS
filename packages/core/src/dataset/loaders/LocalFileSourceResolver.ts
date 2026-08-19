@@ -1,21 +1,10 @@
 import { stat } from "node:fs/promises";
-import { resolve as resolvePath, extname, basename } from "node:path";
+import { resolve as resolvePath } from "node:path";
 import { pathToFileURL } from "node:url";
 import { DatasetSource } from "../value-objects/DatasetSource.js";
 import { URI } from "../value-objects/URI.js";
 import { UnsupportedSourceError } from "../errors/DatasetError.js";
 import { ResolvedSource, SourceResolver } from "../interfaces/SourceResolver.js";
-
-/**
- * MIME type map for the file extensions supported by {@link LocalFileLoader}.
- * Kept here so the resolver can populate `ResolvedSource.mediaType`.
- */
-const EXTENSION_MIME_MAP: Record<string, string> = {
-    txt: "text/plain",
-    md: "text/markdown",
-    markdown: "text/markdown",
-    json: "application/json",
-};
 
 /**
  * Resolves local filesystem sources into {@link ResolvedSource} descriptors
@@ -27,6 +16,10 @@ const EXTENSION_MIME_MAP: Record<string, string> = {
  * - Produce a platform-correct `file:///` URI via {@link pathToFileURL}.
  * - Translate low-level filesystem errors into {@link UnsupportedSourceError}.
  *
+ * This resolver does **not** know which document formats any downstream loader
+ * supports, and does **not** set `mediaType`. Format mapping is the exclusive
+ * responsibility of the loader.
+ *
  * This resolver does **not** read or parse file content.
  */
 export class LocalFileSourceResolver implements SourceResolver {
@@ -36,7 +29,8 @@ export class LocalFileSourceResolver implements SourceResolver {
      * @param source - Must be a `DatasetSource` with `type === "file"`, or a
      *   `URI` whose value is a local filesystem path.
      * @returns A promise resolving to a {@link ResolvedSource} with the absolute
-     *   path, a platform-correct file URI, and the detected MIME type (if known).
+     *   path and a platform-correct file URI. `mediaType` is always `undefined` —
+     *   format classification is deferred to the loader.
      * @throws {UnsupportedSourceError} if the source type is not `"file"`, the
      *   path does not exist, is a directory, or cannot be accessed.
      */
@@ -52,13 +46,11 @@ export class LocalFileSourceResolver implements SourceResolver {
         const fileUrl = pathToFileURL(absolutePath).href;
         const uri = URI.from(fileUrl);
 
-        const ext = extname(basename(absolutePath)).replace(/^\./, "").toLowerCase();
-        const mediaType = EXTENSION_MIME_MAP[ext];
-
         return {
             uri,
             pathOrLocation: absolutePath,
-            mediaType,
+            // mediaType is intentionally undefined: format mapping belongs to
+            // the loader, not the resolver.
         };
     }
 
@@ -85,8 +77,11 @@ export class LocalFileSourceResolver implements SourceResolver {
     /**
      * Validates that the path exists, is readable, and is a regular file.
      *
+     * The original filesystem error is preserved as the `cause` of the thrown
+     * {@link UnsupportedSourceError} so callers retain full debugging information.
+     *
      * @throws {UnsupportedSourceError} for ENOENT, EACCES, EISDIR, or unexpected
-     *   stat errors, with the original cause preserved in the message.
+     *   stat errors.
      */
     private async validatePath(absolutePath: string): Promise<void> {
         let stats;
@@ -103,6 +98,7 @@ export class LocalFileSourceResolver implements SourceResolver {
 
             throw new UnsupportedSourceError(
                 `Local file source "${absolutePath}" ${reason}`,
+                { cause: err },
             );
         }
 
