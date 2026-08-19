@@ -23,7 +23,11 @@ import {
     DocumentType,
     UnsupportedSourceError,
     InvalidDocumentError,
+    BaseFileLoader,
+    MimeType,
+    URI,
 } from "../dist/index.js";
+import type { SourceResolver } from "../dist/index.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -115,6 +119,14 @@ suite("LocalFileSourceResolver", () => {
             () => resolver.resolve(source),
             UnsupportedSourceError,
         );
+    });
+
+    test("R6: resolver does not set mediaType (returns undefined)", async () => {
+        const resolver = new LocalFileSourceResolver();
+        const source = DatasetSource.from("file", txtPath);
+        const resolved = await resolver.resolve(source);
+
+        assert.equal(resolved.mediaType, undefined, "mediaType should be undefined (delegated to loader)");
     });
 });
 
@@ -343,5 +355,114 @@ suite("LocalFileLoader", () => {
             () => loader.load(source, DatasetId.from("ds_test")),
             UnsupportedSourceError,
         );
+    });
+
+    // --- 6. Remediation & Stub cases ---
+
+    test("17: StubResolver - mediaType is preferred when provided", async () => {
+        const filePath = await writeTempFile(tmpDir, "stub.json", "{}");
+        const dsId = DatasetId.from("ds_test");
+
+        class StubLoader extends BaseFileLoader {
+            protected getSupportedExtensions() { return new Set(["json"]); }
+            protected getMimeType() { return MimeType.from("application/json"); }
+            protected getDocumentType() { return DocumentType.JSON; }
+        }
+
+        const resolver: SourceResolver = {
+            async resolve() {
+                return {
+                    uri: URI.from("file:///stub.json"),
+                    pathOrLocation: filePath,
+                    mediaType: "application/vnd.custom+json"
+                };
+            }
+        };
+
+        const stubLoader = new StubLoader(resolver);
+        const doc = await stubLoader.load(DatasetSource.from("file", filePath), dsId);
+
+        assert.equal(doc.getMetadata().get<string>("mimeType"), "application/vnd.custom+json");
+    });
+
+    test("18: File size guard - rejects file exceeding limit", async () => {
+        const filePath = await writeTempFile(tmpDir, "large.txt", "123456789012345"); // 15 bytes
+        const tinyLoader = new LocalFileLoader({ maxFileSizeBytes: 10 });
+        const source = DatasetSource.from("file", filePath);
+
+        await assert.rejects(
+            () => tinyLoader.load(source, DatasetId.from("ds_test")),
+            (err: any) => {
+                assert.ok(err instanceof UnsupportedSourceError);
+                assert.ok(err.message.includes("too large"));
+                return true;
+            }
+        );
+    });
+
+    test("19: File size guard - accepts file within limit", async () => {
+        const filePath = await writeTempFile(tmpDir, "small.txt", "12345"); // 5 bytes
+        const tinyLoader = new LocalFileLoader({ maxFileSizeBytes: 10 });
+        const source = DatasetSource.from("file", filePath);
+
+        const doc = await tinyLoader.load(source, DatasetId.from("ds_test"));
+        assert.equal(doc.getContent(), "12345");
+    });
+
+    test("20: Error messages are clean (no double wrap)", async () => {
+        const filePath = join(tmpDir, "bad.pdf");
+        await writeFile(filePath, "PDF");
+        const source = DatasetSource.from("file", filePath);
+
+        try {
+            await loader.load(source, DatasetId.from("ds_test"));
+            assert.fail("Should throw");
+        } catch (err: any) {
+            assert.ok(err instanceof UnsupportedSourceError);
+            assert.ok(!err.message.includes("Unsupported dataset source:"), "Should not contain double wrap");
+            assert.ok(err.message.startsWith("Unsupported file extension"), "Should start directly with message");
+        }
+    });
+
+    test("21: Filesystem error cause is preserved", async () => {
+        const source = DatasetSource.from("file", join(tmpDir, "ghost2.txt"));
+
+        try {
+            await loader.load(source, DatasetId.from("ds_test"));
+            assert.fail("Should throw");
+        } catch (err: any) {
+            assert.ok(err instanceof UnsupportedSourceError);
+            assert.ok(err.cause, "cause should be present");
+            assert.equal((err.cause as NodeJS.ErrnoException).code, "ENOENT");
+        }
+    });
+
+    test("22: Extension is derived from resolved path, not original source URI", async () => {
+        const filePath = await writeTempFile(tmpDir, "real.json", "{}");
+        const dsId = DatasetId.from("ds_test");
+
+        class StubLoader extends BaseFileLoader {
+            protected getSupportedExtensions() { return new Set(["json"]); }
+            protected getMimeType() { return MimeType.from("application/json"); }
+            protected getDocumentType() { return DocumentType.JSON; }
+        }
+
+        const resolver: SourceResolver = {
+            async resolve() {
+                return {
+                    uri: URI.from("file:///some/fake/path.txt"), // extension in URI is .txt
+                    pathOrLocation: filePath,                    // resolved path is .json
+                };
+            }
+        };
+
+        const stubLoader = new StubLoader(resolver);
+        // Original source also implies .txt: DatasetSource.from("file", "/virtual/fake.txt")
+        const source = DatasetSource.from("file", "/virtual/fake.txt");
+        const doc = await stubLoader.load(source, dsId);
+
+        // It should load based on the resolved path (.json)
+        assert.equal(doc.getType(), DocumentType.JSON);
+        assert.equal(doc.getMetadata().get<string>("extension"), "json");
     });
 });
