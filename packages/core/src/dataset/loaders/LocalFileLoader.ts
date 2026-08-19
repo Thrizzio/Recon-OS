@@ -1,5 +1,6 @@
 import { MimeType } from "../value-objects/MimeType.js";
 import { DocumentType } from "../enums/DocumentType.js";
+import { UnsupportedSourceError } from "../errors/DatasetError.js";
 import { BaseFileLoader } from "./BaseFileLoader.js";
 import { LocalFileSourceResolver } from "./LocalFileSourceResolver.js";
 
@@ -7,7 +8,7 @@ import { LocalFileSourceResolver } from "./LocalFileSourceResolver.js";
  * MIME types for the extensions supported by this loader.
  * Uses the IANA-registered values per RFC 2046 / RFC 7763.
  */
-const MIME_MAP: Record<string, string> = {
+const MIME_MAP: Readonly<Record<string, string>> = {
     txt: "text/plain",
     md: "text/markdown",
     markdown: "text/markdown",
@@ -17,7 +18,7 @@ const MIME_MAP: Record<string, string> = {
 /**
  * `DocumentType` enum values for the extensions supported by this loader.
  */
-const TYPE_MAP: Record<string, DocumentType> = {
+const TYPE_MAP: Readonly<Record<string, DocumentType>> = {
     txt: DocumentType.TEXT,
     md: DocumentType.MARKDOWN,
     markdown: DocumentType.MARKDOWN,
@@ -51,8 +52,8 @@ const SUPPORTED_EXTENSIONS: ReadonlySet<string> = new Set(Object.keys(MIME_MAP))
  *   console.log(doc.getContent());             // raw UTF-8 string
  *   console.log(doc.getFingerprint());         // DocumentFingerprint
  * } catch (err) {
- *   if (err instanceof UnsupportedSourceError) { ... }
- *   if (err instanceof InvalidDocumentError)  { ... }
+ *   if (err instanceof UnsupportedSourceError) { /* ... *\/ }
+ *   if (err instanceof InvalidDocumentError)  { /* ... *\/ }
  * }
  * ```
  */
@@ -60,11 +61,11 @@ export class LocalFileLoader extends BaseFileLoader {
     /**
      * Creates a new `LocalFileLoader`.
      *
-     * A {@link LocalFileSourceResolver} is instantiated internally and passed to
-     * the {@link BaseFileLoader} as its {@link SourceResolver} dependency.
+     * @param options.maxFileSizeBytes - Maximum file size in bytes before load is
+     *   rejected. Defaults to 10 MiB. Pass a smaller value in tests.
      */
-    constructor() {
-        super(new LocalFileSourceResolver());
+    constructor({ maxFileSizeBytes }: { maxFileSizeBytes?: number } = {}) {
+        super(new LocalFileSourceResolver(), { maxFileSizeBytes });
     }
 
     protected getSupportedExtensions(): ReadonlySet<string> {
@@ -72,10 +73,22 @@ export class LocalFileLoader extends BaseFileLoader {
     }
 
     protected getMimeType(ext: string): MimeType {
-        return MimeType.from(MIME_MAP[ext] as string);
+        const mime = MIME_MAP[ext];
+        if (mime === undefined) {
+            throw new UnsupportedSourceError(
+                `No MIME type mapping for extension "${ext}"`,
+            );
+        }
+        return MimeType.from(mime);
     }
 
     protected getDocumentType(ext: string): DocumentType {
-        return TYPE_MAP[ext] as DocumentType;
+        const type = TYPE_MAP[ext];
+        if (type === undefined) {
+            throw new UnsupportedSourceError(
+                `No DocumentType mapping for extension "${ext}"`,
+            );
+        }
+        return type;
     }
 }
