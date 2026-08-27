@@ -156,7 +156,7 @@ export abstract class BaseFileLoader implements FileLoader {
      * filesystem path. Because `pathOrLocation` is always a clean absolute path
      * produced by the resolver, there are no query strings or fragments to strip.
      */
-    private extractExtension(absolutePath: string): string {
+    protected extractExtension(absolutePath: string): string {
         return extname(basename(absolutePath)).replace(/^\./, "").toLowerCase();
     }
 
@@ -165,7 +165,7 @@ export abstract class BaseFileLoader implements FileLoader {
      *
      * @throws {UnsupportedSourceError} if extension is empty or not supported.
      */
-    private assertSupportedExtension(ext: string, absolutePath: string): void {
+    protected assertSupportedExtension(ext: string, absolutePath: string): void {
         if (!ext || !this.getSupportedExtensions().has(ext)) {
             const supported = Array.from(this.getSupportedExtensions())
                 .map((e) => `.${e}`)
@@ -186,7 +186,7 @@ export abstract class BaseFileLoader implements FileLoader {
      *
      * @throws {UnsupportedSourceError} if the file exceeds the configured limit.
      */
-    private async assertFileSizeWithinLimit(absolutePath: string): Promise<void> {
+    protected async assertFileSizeWithinLimit(absolutePath: string): Promise<void> {
         const stats = await stat(absolutePath);
         if (stats.size > this.maxFileSizeBytes) {
             const limitMiB = (this.maxFileSizeBytes / (1024 * 1024)).toFixed(1);
@@ -205,7 +205,7 @@ export abstract class BaseFileLoader implements FileLoader {
      *
      * @throws {InvalidDocumentError} if the buffer contains invalid UTF-8 bytes.
      */
-    private decodeUtf8(buffer: Buffer, sourcePath: string): string {
+    protected decodeUtf8(buffer: Buffer, sourcePath: string): string {
         try {
             return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
         } catch {
