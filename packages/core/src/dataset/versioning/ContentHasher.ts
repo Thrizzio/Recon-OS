@@ -60,10 +60,12 @@ export class ContentHasher {
     hash.update(`name:${dataset.getName().getValue()};`);
     hash.update(`version:${dataset.getVersion().getValue()};`);
 
-    // Sort documents deterministically by Document ID
-    const sortedDocs = Array.from(documents).sort((a, b) =>
-      a.getId().getValue().localeCompare(b.getId().getValue())
-    );
+    // Sort documents deterministically by Document ID (byte code-unit order)
+    const sortedDocs = Array.from(documents).sort((a, b) => {
+      const idA = a.getId().getValue();
+      const idB = b.getId().getValue();
+      return idA < idB ? -1 : idA > idB ? 1 : 0;
+    });
 
     for (const doc of sortedDocs) {
       hash.update(`doc:${doc.getId().getValue()};`);

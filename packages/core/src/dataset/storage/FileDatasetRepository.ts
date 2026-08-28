@@ -259,11 +259,20 @@ export class FileDatasetRepository implements DatasetRepository {
   }
 
   private getDatasetDir(id: DatasetId): string {
-    return path.join(this.baseDir, id.getValue());
+    const targetDir = path.resolve(this.baseDir, id.getValue());
+    const normalizedBase = path.resolve(this.baseDir);
+    if (!targetDir.startsWith(normalizedBase + path.sep) && targetDir !== normalizedBase) {
+      throw new InvalidDatasetError(`Dataset ID "${id.getValue()}" resolves outside repository base directory`);
+    }
+    return targetDir;
   }
 
   private async saveDocumentFile(docsDir: string, doc: Document): Promise<void> {
-    const filePath = path.join(docsDir, `${doc.getId().getValue()}.json`);
+    const filePath = path.resolve(docsDir, `${doc.getId().getValue()}.json`);
+    const normalizedDocsDir = path.resolve(docsDir);
+    if (!filePath.startsWith(normalizedDocsDir + path.sep)) {
+      throw new InvalidDatasetError(`Document ID "${doc.getId().getValue()}" resolves outside documents directory`);
+    }
     const docPayload = JSON.stringify({
       id: doc.getId().getValue(),
       datasetId: doc.getDatasetId().getValue(),
@@ -279,7 +288,11 @@ export class FileDatasetRepository implements DatasetRepository {
   }
 
   private async readDocumentFile(docsDir: string, docId: string, datasetId: DatasetId): Promise<Document | null> {
-    const filePath = path.join(docsDir, `${docId}.json`);
+    const filePath = path.resolve(docsDir, `${docId}.json`);
+    const normalizedDocsDir = path.resolve(docsDir);
+    if (!filePath.startsWith(normalizedDocsDir + path.sep)) {
+      return null;
+    }
     try {
       const content = await fsPromises.readFile(filePath, "utf8");
       const parsed = JSON.parse(content);

@@ -253,3 +253,23 @@ test("FileDatasetRepository propagates non-ENOENT filesystem errors during publi
 
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
+
+test("FileDatasetRepository blocks path traversal attempts escaping baseDir", async () => {
+  const baseStorageDir = await fs.mkdtemp(path.join(os.tmpdir(), "recon_traversal_test_"));
+  const repo = new FileDatasetRepository(baseStorageDir);
+  const maliciousId = DatasetId.from("../../etc");
+
+  await assert.rejects(
+    async () => {
+      await repo.findById(maliciousId);
+    },
+    (err: unknown) => {
+      assert.ok(err instanceof InvalidDatasetError);
+      assert.ok(err.message.includes("resolves outside repository base directory"));
+      return true;
+    }
+  );
+
+  await fs.rm(baseStorageDir, { recursive: true, force: true });
+});
+
