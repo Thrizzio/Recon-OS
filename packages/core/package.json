@@ -27,7 +27,5 @@
   "dependencies": {
     "pdf-parse": "^2.4.5"
   },
-  "devDependencies": {
-    "@types/pdf-parse": "^1.1.5"
-  }
+  "devDependencies": {}
 }
