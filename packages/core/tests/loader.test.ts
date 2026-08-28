@@ -370,6 +370,7 @@ suite("LocalFileLoader", () => {
         }
 
         const resolver: SourceResolver = {
+            supports() { return true; },
             async resolve() {
                 return {
                     uri: URI.from("file:///stub.json"),
@@ -448,6 +449,7 @@ suite("LocalFileLoader", () => {
         }
 
         const resolver: SourceResolver = {
+            supports() { return true; },
             async resolve() {
                 return {
                     uri: URI.from("file:///some/fake/path.txt"), // extension in URI is .txt

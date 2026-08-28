@@ -15,7 +15,7 @@ Domain models, interfaces, and primitives for the Recon-OS retrieval-augmented g
 ## Supported file types
 
 | Extension | `DocumentType` | MIME type |
-|-----------|----------------|-----------|
+| --- | --- | --- |
 | `.txt` | `TEXT` | `text/plain` |
 | `.md`, `.markdown` | `MARKDOWN` | `text/markdown` |
 | `.json` | `JSON` | `application/json` |

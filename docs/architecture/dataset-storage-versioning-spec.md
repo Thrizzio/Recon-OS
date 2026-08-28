@@ -136,7 +136,7 @@ const v1Data = await repo.findByVersion(dataset.getId(), Version.from("1.0.0"));
 
 ### 4.1 On-Disk Directory Layout
 
-```
+```text
 storage/
   └── ds_bench_001/
       ├── manifest.json
