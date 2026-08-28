@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { PDFParse, PasswordException, InvalidPDFException } from "pdf-parse";
 
 import { BaseFileLoader } from "./BaseFileLoader.js";
-import { LocalFileSourceResolver } from "./LocalFileSourceResolver.js";
+import { LocalFileSourceResolver } from "../resolvers/LocalFileSourceResolver.js";
 import { MimeType } from "../value-objects/MimeType.js";
 import { DocumentType } from "../enums/DocumentType.js";
 import { DatasetId } from "../value-objects/DatasetId.js";

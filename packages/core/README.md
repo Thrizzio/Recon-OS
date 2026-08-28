@@ -27,9 +27,8 @@ The `@recon-os/core` package provides a `PdfFileLoader` for ingesting PDF files.
 
 **What it does:** Extracts text from a PDF file using `pdf-parse`, generating a single `Document` entity containing the entire PDF's text.
 **Supported behavior:** It handles single-page and multi-page PDFs, preserving text order.
-**Page metadata:** Page metadata is stored cleanly inside `DocumentMetadata` with keys:
-- `pageNumber`: always `1` (since the whole PDF is represented as a single `Document`)
-- `totalPages`: the total number of pages in the PDF
+**Document metadata:** PDF metadata is stored cleanly inside `DocumentMetadata` with keys:
+- `totalPages`: the total number of pages in the PDF source artifact
 - `title`: the title extracted from the PDF metadata (if present)
 **Error behavior:** Rejects encrypted or corrupted PDFs, throwing an `InvalidDocumentError`.
 **Limitations:** Does not perform OCR. Images and layout tables are not reconstructed unless the underlying text parser (`pdf-parse`) naturally extracts them.
