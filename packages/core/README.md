@@ -22,6 +22,41 @@ Domain models, interfaces, and primitives for the Recon-OS retrieval-augmented g
 
 ## Usage
 
+### Single File Loading
+
+```ts
+import {
+  LocalFileLoader,
+  DatasetSource,
+  DatasetId,
+  UnsupportedSourceError,
+  InvalidDocumentError,
+} from "@recon-os/core";
+
+const loader = new LocalFileLoader();
+const source = DatasetSource.from("file", "/path/to/notes.md");
+const datasetId = DatasetId.from("ds_papers_001");
+
+try {
+  const doc = await loader.load(source, datasetId);
+
+  console.log(doc.getId().getValue());             // sha256 hex of content bytes
+  console.log(doc.getName().getValue());           // "notes.md"
+  console.log(doc.getContent());                   // raw UTF-8 string
+  console.log(doc.getFingerprint().getChecksum()); // sha256 hex (same as id)
+  console.log(doc.getMetadata().getValue());       // { filename, extension, mimeType, ... }
+} catch (err) {
+  if (err instanceof UnsupportedSourceError) {
+    // source type not "file", extension not supported, path missing/is directory
+  }
+  if (err instanceof InvalidDocumentError) {
+    // file contains invalid UTF-8 byte sequences
+  }
+}
+```
+
+### Dataset Storage & Version Control
+
 ```ts
 import {
   LocalFileLoader,
