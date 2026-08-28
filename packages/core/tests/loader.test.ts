@@ -121,12 +121,12 @@ suite("LocalFileSourceResolver", () => {
         );
     });
 
-    test("R6: resolver does not set mediaType (returns undefined)", async () => {
+    test("R6: resolver populates mediaType when extension is known", async () => {
         const resolver = new LocalFileSourceResolver();
         const source = DatasetSource.from("file", txtPath);
         const resolved = await resolver.resolve(source);
 
-        assert.equal(resolved.mediaType, undefined, "mediaType should be undefined (delegated to loader)");
+        assert.equal(resolved.mediaType, "text/plain");
     });
 });
 
@@ -370,6 +370,7 @@ suite("LocalFileLoader", () => {
         }
 
         const resolver: SourceResolver = {
+            supports() { return true; },
             async resolve() {
                 return {
                     uri: URI.from("file:///stub.json"),
@@ -392,7 +393,7 @@ suite("LocalFileLoader", () => {
 
         await assert.rejects(
             () => tinyLoader.load(source, DatasetId.from("ds_test")),
-            (err: any) => {
+            (err: unknown) => {
                 assert.ok(err instanceof UnsupportedSourceError);
                 assert.ok(err.message.includes("too large"));
                 return true;
@@ -417,7 +418,7 @@ suite("LocalFileLoader", () => {
         try {
             await loader.load(source, DatasetId.from("ds_test"));
             assert.fail("Should throw");
-        } catch (err: any) {
+        } catch (err: unknown) {
             assert.ok(err instanceof UnsupportedSourceError);
             assert.ok(!err.message.includes("Unsupported dataset source:"), "Should not contain double wrap");
             assert.ok(err.message.startsWith("Unsupported file extension"), "Should start directly with message");
@@ -430,7 +431,7 @@ suite("LocalFileLoader", () => {
         try {
             await loader.load(source, DatasetId.from("ds_test"));
             assert.fail("Should throw");
-        } catch (err: any) {
+        } catch (err: unknown) {
             assert.ok(err instanceof UnsupportedSourceError);
             assert.ok(err.cause, "cause should be present");
             assert.equal((err.cause as NodeJS.ErrnoException).code, "ENOENT");
@@ -448,6 +449,7 @@ suite("LocalFileLoader", () => {
         }
 
         const resolver: SourceResolver = {
+            supports() { return true; },
             async resolve() {
                 return {
                     uri: URI.from("file:///some/fake/path.txt"), // extension in URI is .txt

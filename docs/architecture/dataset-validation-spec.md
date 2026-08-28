@@ -71,6 +71,7 @@ export interface ValidationResult {
 ```
 
 Factory helpers allow constructing outcomes cleanly:
+
 - `ValidationResult.success(warnings?, issues?)`
 - `ValidationResult.failure(errors | issues, warnings?)`
 - `ValidationResult.fromIssues(issues)`
